@@ -20,11 +20,7 @@ function Archive() {
 
   return (
     <MobileLayout>
-      <Header
-        title="아카이브"
-        subtitle="지난 소비를 돌아보세요"
-        showBack
-      />
+      <Header title="아카이브" />
 
       <List>
         {Object.entries(grouped).map(([date, items]) => (

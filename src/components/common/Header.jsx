@@ -2,12 +2,19 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 /**
- * 페이지 상단 헤더.
- * - 뒤로가기 / 타이틀 / 서브타이틀 / 우측 슬롯 4영역.
+ * 페이지 상단 헤더. 두 가지 정렬 모드.
  *
- * 사용 예:
- *   <Header title="아카이브" subtitle="지난 소비를 돌아보세요" showBack />
- *   <Header title="마이페이지" showBack rightSlot={<button>설정</button>} />
+ * align="center" (기본, 디자인 시안 기준)
+ *   한 줄: [좌측 빈 자리] [중앙 타이틀] [우측 슬롯]
+ *   subtitle 무시 (가운데 헤더에는 안 씀)
+ *
+ *   <Header title="아카이브" rightSlot={<SearchIcon />} />
+ *   <Header title="마이페이지" />
+ *
+ * align="left"
+ *   두 줄: [뒤로가기/우측 슬롯] / [타이틀 + 서브타이틀]
+ *
+ *   <Header align="left" title="설정" subtitle="앱 정보를 확인하세요" showBack />
  */
 function Header({
   title,
@@ -15,50 +22,64 @@ function Header({
   showBack = false,
   onBack,
   rightSlot,
+  align = 'center',
 }) {
   const navigate = useNavigate();
-
-  // onBack을 안 넘기면 디폴트로 history.back() 동작
   const handleBack = onBack ?? (() => navigate(-1));
 
+  if (align === 'center') {
+    return (
+      <CenterWrapper>
+        {showBack ? (
+          <BackButton onClick={handleBack} aria-label="뒤로 가기">
+            ←
+          </BackButton>
+        ) : (
+          <Spacer />
+        )}
+        <CenterTitle>{title}</CenterTitle>
+        <SlotBox>{rightSlot ?? <Spacer />}</SlotBox>
+      </CenterWrapper>
+    );
+  }
+
+  // align === 'left'
   return (
-    <Wrapper>
+    <LeftWrapper>
       <TopRow>
         {showBack ? (
           <BackButton onClick={handleBack} aria-label="뒤로 가기">
             ←
           </BackButton>
         ) : (
-          // 좌측이 비어도 우측이 항상 같은 위치에 오도록 자리 차지용
           <Spacer />
         )}
-        <RightSlot>{rightSlot}</RightSlot>
+        <SlotBox>{rightSlot}</SlotBox>
       </TopRow>
       <TitleArea>
-        <Title>{title}</Title>
+        <LeftTitle>{title}</LeftTitle>
         {subtitle && <Subtitle>{subtitle}</Subtitle>}
       </TitleArea>
-    </Wrapper>
+    </LeftWrapper>
   );
 }
 
 export default Header;
 
-const Wrapper = styled.header`
-  padding-top: 16px;
-  padding-bottom: 16px;
-`;
-
-const TopRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  min-height: 36px;
-`;
+/* ===== 공통 ===== */
 
 const Spacer = styled.div`
   width: 36px;
   height: 36px;
+  flex-shrink: 0;
+`;
+
+const SlotBox = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 36px;
+  flex-shrink: 0;
 `;
 
 const BackButton = styled.button`
@@ -74,22 +95,52 @@ const BackButton = styled.button`
   font-size: 18px;
   color: ${({ theme }) => theme.colors.text.ink};
   font-family: inherit;
+  flex-shrink: 0;
 
   &:hover {
     background: ${({ theme }) => theme.colors.whiteAlpha85};
   }
 `;
 
-const RightSlot = styled.div`
+/* ===== align="center" ===== */
+
+const CenterWrapper = styled.header`
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  padding: 24px 0 16px;
+  min-height: 60px;
+`;
+
+const CenterTitle = styled.h1`
+  font-family: inherit;
+  font-weight: 800;
+  font-size: ${({ theme }) => theme.fontSizes.xl};
+  color: ${({ theme }) => theme.colors.text.ink};
+  margin: 0;
+  text-align: center;
+  flex: 1;
+`;
+
+/* ===== align="left" ===== */
+
+const LeftWrapper = styled.header`
+  padding-top: 16px;
+  padding-bottom: 16px;
+`;
+
+const TopRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 36px;
 `;
 
 const TitleArea = styled.div`
   padding-top: 16px;
 `;
 
-const Title = styled.h1`
+const LeftTitle = styled.h1`
   font-family: inherit;
   font-weight: 800;
   font-size: 28px;

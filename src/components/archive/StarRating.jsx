@@ -27,13 +27,15 @@ export default StarRating;
 
 const Row = styled.span`
   display: inline-flex;
-  gap: 1px;
+  gap: 2px;
   line-height: 1;
 `;
 
-const SIZE_PX = { sm: 10, md: 13 };
+const SIZE_PX = { sm: 14, md: 18 };
 
 const Star = styled.span`
+  /* GeekbleMalang은 ★ 글리프가 작게 렌더링되므로 시스템 폰트로 명시 */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: ${({ $size }) => `${SIZE_PX[$size]}px`};
   color: ${({ theme, $active }) =>
     $active ? theme.colors.star.active : theme.colors.star.inactive};

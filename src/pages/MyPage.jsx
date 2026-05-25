@@ -1,261 +1,259 @@
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import styled from 'styled-components';
 
-const USER = {
-  name: '이지연',
-  email: '2ziziy@hufs.ac.kr',
-  joinDate: '2026-03-15',
-  totalRecords: 142,
+import MobileLayout from '../components/common/MobileLayout';
+import Header from '../components/common/Header';
+import BottomNav from '../components/common/BottomNav';
+
+import MembershipBadge from '../components/mypage/MembershipBadge';
+import InfoRow from '../components/mypage/InfoRow';
+import EditChip from '../components/mypage/EditChip';
+import BudgetCard from '../components/mypage/BudgetCard';
+
+// 더미 사용자 — API 연동 전까지 사용.
+// 백엔드 응답 형태가 정해지면 user.provider === 'KAKAO' 같은 키로 분기 예정.
+const USERS = {
+  normal: {
+    type: 'normal',
+    name: '김상우',
+    username: 'dev_Sangwoo',
+    phone: '010-0000-000',
+    email: 'user@example.com',
+    nickname: '멋쟁이사자',
+    gender: '남성',
+    ageGroup: '20대',
+    budget: 500000,
+  },
+  kakao: {
+    type: 'kakao',
+    name: '김상우',
+    username: 'kakao_123456',
+    phone: '010-0000-000',
+    email: 'user@example.com',
+    nickname: '멋쟁이사자',
+    gender: '남성',
+    ageGroup: '20대',
+    budget: 500000,
+  },
 };
 
-const MENU_ITEMS = [
-  { label: '프로필 수정', icon: '👤' },
-  { label: '알림 설정', icon: '🔔' },
-  { label: '카테고리 관리', icon: '🏷️' },
-  { label: '데이터 내보내기', icon: '📤' },
-  { label: '도움말', icon: '❓' },
-  { label: '약관 및 정책', icon: '📋' },
-];
-
 function MyPage() {
-  const navigate = useNavigate();
+  // TODO(API): 실제 인증 사용자로 교체. 지금은 토글로 두 모드 확인용.
+  const [userType, setUserType] = useState('normal');
+  const user = USERS[userType];
+  const isKakao = user.type === 'kakao';
+
+  // 임시 핸들러 — 추후 API 연동/페이지 이동으로 교체
+  const handleEdit = (field) => console.log('[mypage] edit', field);
+  const handleEditBudget = () => console.log('[mypage] edit budget');
+  const handleLogout = () => console.log('[mypage] logout');
+  const handleWithdraw = () => console.log('[mypage] withdraw');
 
   return (
-    <Page>
-      <TopBar>
-        <BackButton onClick={() => navigate(-1)}>←</BackButton>
-      </TopBar>
-      <PageHeader>
-        <h1>마이페이지</h1>
-      </PageHeader>
+    <MobileLayout>
+      <Header title="마이페이지" />
 
-      <ProfileCard>
-        <Avatar>{USER.name[0]}</Avatar>
-        <ProfileInfo>
-          <ProfileName>{USER.name}</ProfileName>
-          <ProfileEmail>{USER.email}</ProfileEmail>
-        </ProfileInfo>
-      </ProfileCard>
+      <Body>
+        {/* TODO: API 연동 시 제거 — 개발용 모드 토글 */}
+        <DevToggle>
+          <DevCaption>🛠 개발용 모드</DevCaption>
+          <DevButtons>
+            <DevBtn
+              $active={userType === 'normal'}
+              onClick={() => setUserType('normal')}
+            >
+              일반
+            </DevBtn>
+            <DevBtn
+              $active={userType === 'kakao'}
+              onClick={() => setUserType('kakao')}
+            >
+              카카오
+            </DevBtn>
+          </DevButtons>
+        </DevToggle>
 
-      <StatRow>
-        <StatBox>
-          <StatValue>{USER.totalRecords}</StatValue>
-          <StatLabel>총 기록</StatLabel>
-        </StatBox>
-        <StatBox>
-          <StatValue>{USER.joinDate.slice(5)}</StatValue>
-          <StatLabel>가입일</StatLabel>
-        </StatBox>
-      </StatRow>
+        {/* 프로필 + 정보 카드 */}
+        <ProfileCard>
+          <ProfileHead>
+            <Avatar $type={user.type} />
+            <UserName>{user.name}</UserName>
+            <MembershipBadge type={user.type} />
+          </ProfileHead>
 
-      <MenuList>
-        {MENU_ITEMS.map((item) => (
-          <MenuItem key={item.label}>
-            <MenuIcon>{item.icon}</MenuIcon>
-            <MenuLabel>{item.label}</MenuLabel>
-            <MenuArrow>›</MenuArrow>
-          </MenuItem>
-        ))}
-      </MenuList>
+          <Divider />
 
-      <LogoutBtn onClick={() => navigate('/login')}>로그아웃</LogoutBtn>
+          <InfoList>
+            <InfoRow
+              label="아이디"
+              value={user.username}
+              action={isKakao ? <EditChip variant="disabled" /> : undefined}
+            />
+            <InfoRow
+              label="비밀번호"
+              value={isKakao ? '소셜 로그인' : undefined}
+              action={
+                isKakao ? (
+                  <EditChip variant="disabled" />
+                ) : (
+                  <EditChip variant="edit" onClick={() => handleEdit('password')} />
+                )
+              }
+            />
+            <InfoRow label="전화번호" value={user.phone} />
+            <InfoRow label="이메일" value={user.email} />
+            <InfoRow
+              label="별명"
+              value={user.nickname}
+              action={<EditChip variant="edit" onClick={() => handleEdit('nickname')} />}
+            />
+            <InfoRow label="성별" value={user.gender} />
+            <InfoRow label="연령대" value={user.ageGroup} />
+          </InfoList>
+        </ProfileCard>
 
-      <BottomNav>
-        <NavButton onClick={() => navigate('/archive')}>아카이브</NavButton>
-        <NavButton onClick={() => navigate('/register')}>등록</NavButton>
-        <NavButton onClick={() => navigate('/report')}>리포트</NavButton>
-        <NavButton $active onClick={() => navigate('/mypage')}>마이</NavButton>
-      </BottomNav>
-    </Page>
+        {/* 예산 */}
+        <BudgetCard amount={user.budget} onEdit={handleEditBudget} />
+
+        {/* 로그아웃 + 회원 탈퇴 */}
+        <LogoutCard type="button" onClick={handleLogout}>
+          로그아웃
+        </LogoutCard>
+        <WithdrawText type="button" onClick={handleWithdraw}>
+          회원 탈퇴
+        </WithdrawText>
+      </Body>
+
+      <BottomNav />
+    </MobileLayout>
   );
 }
 
 export default MyPage;
 
-const Page = styled.div`
-  min-height: 100vh;
-  padding: 0 16px;
-  max-width: 393px;
-  margin: 0 auto;
-  padding-bottom: 88px;
-`;
-
-const PageHeader = styled.header`
-  padding: 32px 0 16px;
-  h1 { font-family: 'GeekbleMalang', sans-serif; font-weight: 800; font-size: 28px; color: #0f131c; }
-`;
-
-const BottomNav = styled.nav`
-  position: fixed;
-  bottom: 33px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(393px - 52px);
-  background: #fff;
+const Body = styled.div`
   display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding: 10px 4px;
-  border-radius: 20px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 16px;
 `;
 
-const NavButton = styled.button`
-  flex: 1;
-  background: none;
+/* ===== 개발용 토글 ===== */
+
+const DevToggle = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px dashed rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+`;
+
+const DevCaption = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme }) => theme.colors.text.secondary};
+`;
+
+const DevButtons = styled.div`
+  display: flex;
+  gap: 4px;
+`;
+
+const DevBtn = styled.button`
   border: none;
-  padding: 4px 8px;
+  border-radius: ${({ theme }) => theme.radius.pill};
+  padding: 4px 12px;
   font-family: inherit;
-  font-weight: ${({ $active }) => ($active ? '700' : '500')};
-  color: ${({ $active }) => ($active ? '#0f131c' : 'rgba(15,19,28,0.65)')};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: 700;
   cursor: pointer;
-  font-size: 10px;
+  background: ${({ theme, $active }) =>
+    $active ? theme.colors.text.brand : theme.colors.white};
+  color: ${({ theme, $active }) =>
+    $active ? theme.colors.white : theme.colors.text.secondary};
 `;
 
-const BackButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: rgba(255, 255, 255, 0.6);
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 18px;
-  color: #0f131c;
-  &:hover { background: rgba(255, 255, 255, 0.85); }
-`;
-
-const TopBar = styled.div`
-  padding-top: 16px;
-  padding-bottom: 4px;
-`;
+/* ===== 프로필 ===== */
 
 const ProfileCard = styled.section`
-  background: #fff;
-  border-radius: 16px;
-  padding: 26px;
+  background: ${({ theme }) => theme.colors.white};
+  border-radius: ${({ theme }) => theme.radius.card};
+  padding: 28px 24px 20px;
+  box-shadow: ${({ theme }) => theme.shadow.cardSoft};
   display: flex;
+  flex-direction: column;
+  gap: 18px;
+`;
+
+const ProfileHead = styled.div`
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  gap: 10px;
 `;
 
 const Avatar = styled.div`
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: #0f131c;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  font-weight: 700;
-  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: ${({ theme }) => theme.radius.circle};
+  background: ${({ theme, $type }) =>
+    $type === 'kakao' ? theme.colors.accent.yellow : theme.colors.mint.dark};
 `;
 
-const ProfileInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-`;
-
-const ProfileName = styled.h2`
-  font-family: 'GeekbleMalang', sans-serif;
-  font-weight: 700;
-  font-size: 20px;
-  color: #0f131c;
-`;
-
-const ProfileEmail = styled.p`
-  color: #aaa;
-  font-weight: 300;
-  font-size: 13px;
-`;
-
-const StatRow = styled.div`
-  display: flex;
-  gap: 12px;
-  margin: 16px 0;
-`;
-
-const StatBox = styled.div`
-  flex: 1;
-  background: #fff;
-  border-radius: 12px;
-  padding: 16px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-`;
-
-const StatValue = styled.span`
-  font-weight: 800;
-  font-size: 20px;
-  color: #0f131c;
-`;
-
-const StatLabel = styled.span`
-  font-size: 12px;
-  color: #bbb;
-  font-weight: 300;
-`;
-
-const MenuList = styled.ul`
-  list-style: none;
-  padding: 0;
+const UserName = styled.h2`
   margin: 0;
-  background: #fff;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  font-size: ${({ theme }) => theme.fontSizes.lg};
+  font-weight: 800;
+  color: ${({ theme }) => theme.colors.text.ink};
 `;
 
-const MenuItem = styled.li`
+const Divider = styled.hr`
+  margin: 0;
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+`;
+
+const InfoList = styled.div`
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  border-bottom: 1px solid #f5f5f5;
-  cursor: pointer;
-  transition: background 0.1s;
-  &:last-child { border-bottom: none; }
-  &:hover { background: #f8faf9; }
+  flex-direction: column;
+  gap: 14px;
+  padding: 2px 4px 4px;
 `;
 
-const MenuIcon = styled.span`
-  font-size: 18px;
-  width: 24px;
-`;
+/* ===== 로그아웃 / 탈퇴 ===== */
 
-const MenuLabel = styled.span`
-  flex: 1;
-  color: #0f131c;
-  font-weight: 500;
-`;
-
-const MenuArrow = styled.span`
-  color: #ddd;
-  font-size: 20px;
-`;
-
-const LogoutBtn = styled.button`
+const LogoutCard = styled.button`
   width: 100%;
-  margin-top: 16px;
-  padding: 14px;
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 12px;
-  color: #e05555;
-  font-weight: 500;
+  height: 56px;
+  border: none;
+  border-radius: ${({ theme }) => theme.radius.card};
+  background: ${({ theme }) => theme.colors.white};
+  box-shadow: ${({ theme }) => theme.shadow.cardSoft};
   font-family: inherit;
-  font-size: 15px;
+  font-size: ${({ theme }) => theme.fontSizes.base};
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.text.ink};
   cursor: pointer;
-  transition: background 0.15s;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-  &:hover { background: #fff5f5; }
+
+  &:hover {
+    box-shadow: ${({ theme }) => theme.shadow.cardHover};
+  }
+`;
+
+const WithdrawText = styled.button`
+  align-self: center;
+  background: none;
+  border: none;
+  padding: 4px 10px;
+  font-family: inherit;
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.text.secondary};
+  cursor: pointer;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.text.brand};
+  }
 `;

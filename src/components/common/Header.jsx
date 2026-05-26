@@ -1,5 +1,6 @@
-import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
+import { ChevronLeft } from "lucide-react";
 
 /**
  * 페이지 상단 헤더. 두 가지 정렬 모드.
@@ -22,17 +23,17 @@ function Header({
   showBack = false,
   onBack,
   rightSlot,
-  align = 'center',
+  align = "center",
 }) {
   const navigate = useNavigate();
   const handleBack = onBack ?? (() => navigate(-1));
 
-  if (align === 'center') {
+  if (align === "center") {
     return (
       <CenterWrapper>
         {showBack ? (
           <BackButton onClick={handleBack} aria-label="뒤로 가기">
-            ←
+            <ChevronLeft size={20} />
           </BackButton>
         ) : (
           <Spacer />
@@ -49,7 +50,7 @@ function Header({
       <TopRow>
         {showBack ? (
           <BackButton onClick={handleBack} aria-label="뒤로 가기">
-            ←
+            <ChevronLeft size={20} />
           </BackButton>
         ) : (
           <Spacer />
@@ -114,7 +115,7 @@ const CenterWrapper = styled.header`
 
 const CenterTitle = styled.h1`
   font-family: inherit;
-  font-weight: 800;
+  font-weight: 500;
   font-size: ${({ theme }) => theme.fontSizes.xl};
   color: ${({ theme }) => theme.colors.text.ink};
   margin: 0;
@@ -142,7 +143,7 @@ const TitleArea = styled.div`
 
 const LeftTitle = styled.h1`
   font-family: inherit;
-  font-weight: 800;
+  font-weight: 500;
   font-size: 28px;
   color: ${({ theme }) => theme.colors.text.ink};
   margin: 0;
@@ -151,6 +152,6 @@ const LeftTitle = styled.h1`
 const Subtitle = styled.p`
   color: ${({ theme }) => theme.colors.text.secondary};
   font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: 300;
+  font-weight: 500;
   margin: 6px 0 0;
 `;

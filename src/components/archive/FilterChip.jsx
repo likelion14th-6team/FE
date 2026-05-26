@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
 /**
  * 드롭다운 칩. "2026.05 ▾" / "전체 ▾" / "최신순 ▾" 등.
@@ -35,9 +35,9 @@ const Chip = styled.button`
   cursor: pointer;
   font-family: inherit;
   font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: 600;
+  font-weight: 500;
   background: ${({ theme, $active }) =>
-    $active ? 'rgba(255, 240, 102, 0.8)' : theme.colors.white};
+    $active ? "rgba(255, 240, 102, 0.8)" : theme.colors.white};
   color: ${({ theme, $active }) =>
     $active ? theme.colors.accent.yellowDark : theme.colors.text.ink};
   box-shadow: ${({ theme }) => theme.shadow.cardSoft};

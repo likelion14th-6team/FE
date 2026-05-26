@@ -1,6 +1,6 @@
-import styled from 'styled-components';
-import EditChip from './EditChip';
-import { formatCurrency } from '../../utils/formatCurrency';
+import styled from "styled-components";
+import EditChip from "./EditChip";
+import { formatCurrency } from "../../utils/formatCurrency";
 
 /**
  * 이번 달 예산 카드.
@@ -12,7 +12,7 @@ import { formatCurrency } from '../../utils/formatCurrency';
  *  - monthLabel: 상단 캡션 (기본 "이번 달 총 예산")
  *  - onEdit:     수정 버튼 클릭 핸들러
  */
-function BudgetCard({ amount, monthLabel = '이번 달 총 예산', onEdit }) {
+function BudgetCard({ amount, monthLabel = "이번 달 총 예산", onEdit }) {
   return (
     <Card>
       <Left>

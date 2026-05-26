@@ -6,8 +6,8 @@ import Header from '../components/common/Header';
 import BottomNav from '../components/common/BottomNav';
 
 import TabSwitch from '../components/archive/TabSwitch';
-import FilterChip from '../components/archive/FilterChip';
 import FilterDropdown from '../components/archive/FilterDropdown';
+import PeriodFilter from '../components/archive/PeriodFilter';
 import DateGroupHeader from '../components/archive/DateGroupHeader';
 import ExpenseCard from '../components/archive/ExpenseCard';
 import RegretSummaryCard from '../components/archive/RegretSummaryCard';
@@ -34,6 +34,18 @@ const SORT_OPTIONS = [
   { value: 'satisfaction-desc', label: '만족도순' },
 ];
 
+// 기간 필터링 — period.mode에 따라 데이터 잘라냄
+function filterByPeriod(items, period) {
+  if (!period || period.mode === 'all') return items;
+  return items.filter((it) => {
+    const d = new Date(it.date);
+    const y = d.getFullYear();
+    const m = d.getMonth() + 1;
+    if (period.mode === 'year') return y === period.year;
+    return y === period.year && m === period.month;
+  });
+}
+
 // 정렬 함수 — sortOrder에 따라 비교 함수 반환
 function getSortFn(sortOrder) {
   switch (sortOrder) {
@@ -59,6 +71,10 @@ function Archive() {
   const [selectedExpense, setSelectedExpense] = useState(null);
 
   // 필터/정렬 상태
+  const [period, setPeriod] = useState(() => {
+    const now = new Date();
+    return { mode: 'month', year: now.getFullYear(), month: now.getMonth() + 1 };
+  });
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [sortOrder, setSortOrder] = useState('recent');
 
@@ -74,11 +90,17 @@ function Archive() {
       : SAMPLE_EXPENSES;
   }, [tab]);
 
-  // 2차: 카테고리 필터 적용
+  // 2차: 기간 필터 적용
+  const periodFiltered = useMemo(
+    () => filterByPeriod(baseList, period),
+    [baseList, period],
+  );
+
+  // 3차: 카테고리 필터 적용
   const filteredList = useMemo(() => {
-    if (categoryFilter === 'all') return baseList;
-    return baseList.filter((e) => e.categoryKey === categoryFilter);
-  }, [baseList, categoryFilter]);
+    if (categoryFilter === 'all') return periodFiltered;
+    return periodFiltered.filter((e) => e.categoryKey === categoryFilter);
+  }, [periodFiltered, categoryFilter]);
 
   // 3차: 정렬 적용
   const sortedList = useMemo(() => {
@@ -136,8 +158,7 @@ function Archive() {
         )}
 
         <FilterRow>
-          {/* 기간 필터 — Step 2에서 캘린더 UI 도입 예정 */}
-          <FilterChip label="2026.05" />
+          <PeriodFilter value={period} onChange={setPeriod} />
 
           <FilterDropdown
             value={categoryFilter}

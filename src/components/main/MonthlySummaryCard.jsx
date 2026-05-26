@@ -1,11 +1,11 @@
-import styled from 'styled-components';
-import Card from '../common/Card';
-import ProgressBar from '../common/ProgressBar';
-import Mochi from '../common/Mochi';
+import styled from "styled-components";
+import Card from "../common/Card";
+import ProgressBar from "../common/ProgressBar";
+import Mochi from "../common/Mochi";
 
 function MonthlySummaryCard({
-  userName = '박재영',
-  monthLabel = '2026년 5월',
+  userName = "박재영",
+  monthLabel = "2026년 5월",
   budget = 1000000,
   spent = 420000,
 }) {
@@ -14,7 +14,7 @@ function MonthlySummaryCard({
 
   const fmt = (n) => {
     if (n >= 10000) return `${Math.round(n / 10000)}만원`;
-    return `${n.toLocaleString('ko-KR')}원`;
+    return `${n.toLocaleString("ko-KR")}원`;
   };
 
   return (
@@ -69,7 +69,7 @@ const TopRow = styled.div`
 const Greeting = styled.h2`
   margin: 0;
   font-size: ${({ theme }) => theme.fontSizes.lg};
-  font-weight: 700;
+  font-weight: 500;
   color: ${({ theme }) => theme.colors.text.ink};
 `;
 
@@ -111,7 +111,7 @@ const StatLabel = styled.span`
 
 const StatValue = styled.span`
   font-size: ${({ theme }) => theme.fontSizes.base};
-  font-weight: 700;
+  font-weight: 500;
   color: ${({ theme }) => theme.colors.text.ink};
   white-space: nowrap;
 `;

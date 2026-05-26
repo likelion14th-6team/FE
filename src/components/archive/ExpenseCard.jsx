@@ -1,8 +1,8 @@
-import styled from 'styled-components';
-import { CATEGORIES } from '../../utils/constants';
-import { formatCurrency } from '../../utils/formatCurrency';
-import { formatKoreanTime } from '../../utils/dateUtils';
-import StarRating from './StarRating';
+import styled from "styled-components";
+import { CATEGORIES } from "../../utils/constants";
+import { formatCurrency } from "../../utils/formatCurrency";
+import { formatKoreanTime } from "../../utils/dateUtils";
+import StarRating from "./StarRating";
 
 /**
  * 소비 카드. 좌측 카테고리 색 막대 + 정보 + 우측 금액/별점.
@@ -52,7 +52,9 @@ const Card = styled.button`
   text-align: left;
   padding: 0;
   box-shadow: ${({ theme }) => theme.shadow.cardSoft};
-  transition: box-shadow 0.15s, transform 0.15s;
+  transition:
+    box-shadow 0.15s,
+    transform 0.15s;
 
   &:hover {
     box-shadow: ${({ theme }) => theme.shadow.cardHover};
@@ -85,7 +87,7 @@ const Info = styled.div`
 
 const Title = styled.span`
   font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: 700;
+  font-weight: 500;
   color: ${({ theme }) => theme.colors.text.ink};
   white-space: nowrap;
   overflow: hidden;
@@ -115,6 +117,6 @@ const Right = styled.div`
 
 const Amount = styled.span`
   font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: 800;
+  font-weight: 500;
   color: ${({ theme }) => theme.colors.text.ink};
 `;

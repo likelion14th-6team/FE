@@ -24,7 +24,7 @@ const Button = styled.button`
   background: ${({ theme }) => theme.colors.nav.fill};
   color: ${({ theme }) => theme.colors.white};
   font-size: 28px;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1;
   cursor: pointer;
   box-shadow: 0 4px 16px rgba(107, 191, 170, 0.45);

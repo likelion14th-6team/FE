@@ -1,35 +1,36 @@
-import { useState } from 'react';
-import styled from 'styled-components';
-import MobileLayout from '../components/common/MobileLayout';
-import Header from '../components/common/Header';
-import BottomNav from '../components/common/BottomNav';
-import Card from '../components/common/Card';
-import ProgressBar from '../components/common/ProgressBar';
-import Mochi from '../components/common/Mochi';
+import { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import styled from "styled-components";
+import MobileLayout from "../components/common/MobileLayout";
+import Header from "../components/common/Header";
+import BottomNav from "../components/common/BottomNav";
+import Card from "../components/common/Card";
+import ProgressBar from "../components/common/ProgressBar";
+import Mochi from "../components/common/Mochi";
 
 const CATEGORIES = [
-  { label: '식비', pct: 40, color: '#F4A97F' },
-  { label: '교통', pct: 25, color: '#7BB8D4' },
-  { label: '쇼핑', pct: 20, color: '#C49BD4' },
-  { label: '문화', pct: 15, color: '#F0C96A' },
+  { label: "식비", pct: 40, color: "#F4A97F" },
+  { label: "교통", pct: 25, color: "#7BB8D4" },
+  { label: "쇼핑", pct: 20, color: "#C49BD4" },
+  { label: "문화", pct: 15, color: "#F0C96A" },
 ];
 
 const SATISFACTION_ROWS = [
-  { label: '식비', pct: 60, color: '#F4A97F' },
-  { label: '문화', pct: 60, color: '#7BB8D4' },
-  { label: '쇼핑', pct: 60, color: '#C49BD4' },
-  { label: '기타', pct: 60, color: '#B0B8B4' },
+  { label: "식비", pct: 60, color: "#F4A97F" },
+  { label: "문화", pct: 60, color: "#7BB8D4" },
+  { label: "쇼핑", pct: 60, color: "#C49BD4" },
+  { label: "기타", pct: 60, color: "#B0B8B4" },
 ];
 
 const TIME_BARS = [
-  { label: '오전', h: 22 },
-  { label: '오후', h: 30 },
-  { label: '밤', h: 48 },
-  { label: '새벽', h: 56 },
+  { label: "오전", h: 22 },
+  { label: "오후", h: 30 },
+  { label: "밤", h: 48 },
+  { label: "새벽", h: 56 },
 ];
 
 function Report() {
-  const [monthLabel] = useState('2026년 4월');
+  const [monthLabel] = useState("2026년 4월");
   const budget = 1000000;
   const spent = 842300;
   const ratio = Math.round((spent / budget) * 100);
@@ -40,15 +41,19 @@ function Report() {
 
       <Body>
         <MonthPicker>
-          <PickerBtn type="button" aria-label="이전 달">‹</PickerBtn>
+          <PickerBtn type="button" aria-label="이전 달">
+            <ChevronLeft size={20} />
+          </PickerBtn>
           <span>{monthLabel}</span>
-          <PickerBtn type="button" aria-label="다음 달">›</PickerBtn>
+          <PickerBtn type="button" aria-label="다음 달">
+            <ChevronRight size={20} />
+          </PickerBtn>
         </MonthPicker>
 
         <Card as="section">
           <CardPad>
             <Muted>총 예산 ₩ 1,000,000 중 이번 달 소비 총액</Muted>
-            <BigAmount>₩ {spent.toLocaleString('ko-KR')}</BigAmount>
+            <BigAmount>₩ {spent.toLocaleString("ko-KR")}</BigAmount>
             <ProgressBar ratio={ratio} />
           </CardPad>
         </Card>
@@ -148,7 +153,7 @@ export default Report;
 const Body = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 8px;
   padding-bottom: 16px;
 `;
 
@@ -161,7 +166,8 @@ const MonthPicker = styled.div`
   background: ${({ theme }) => theme.colors.whiteAlpha60};
   border-radius: 100px;
   font-size: ${({ theme }) => theme.fontSizes.lg};
-  font-weight: 700;
+  font-weight: 500;
+  margin-bottom: 8px;
 `;
 
 const PickerBtn = styled.button`
@@ -192,7 +198,7 @@ const BigAmount = styled.p`
 const SectionTitle = styled.h2`
   margin: 0 0 16px;
   font-size: ${({ theme }) => theme.fontSizes.base};
-  font-weight: 700;
+  font-weight: 500;
 `;
 
 const CategoryRow = styled.div`
@@ -219,9 +225,9 @@ const Donut = styled.div`
 `;
 
 const Legend = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
 `;
 
 const LegendItem = styled.div`
@@ -251,7 +257,8 @@ const Bar = styled.div`
   border-radius: 8px;
   background: ${({ theme, $muted }) =>
     $muted ? theme.colors.mint.light : theme.colors.nav.fill};
-  box-shadow: ${({ $muted }) => ($muted ? 'none' : '0 0 2px rgba(206,236,196,0.6)')};
+  box-shadow: ${({ $muted }) =>
+    $muted ? "none" : "0 0 2px rgba(206,236,196,0.6)"};
 `;
 
 const BarLabels = styled.div`
@@ -343,6 +350,7 @@ const AiTitle = styled.h3`
   margin: 0 0 12px;
   font-size: ${({ theme }) => theme.fontSizes.base};
   color: ${({ theme }) => theme.colors.accent.yellowDark};
+  font-weight: 500;
 `;
 
 const AiText = styled.p`

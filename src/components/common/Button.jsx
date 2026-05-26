@@ -85,7 +85,7 @@ const StyledButton = styled.button`
   border: none;
   border-radius: ${({ theme }) => theme.radius.pill};
   font-family: inherit;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: opacity 0.15s, background 0.15s;
   width: ${({ $fullWidth }) => ($fullWidth ? '100%' : 'auto')};

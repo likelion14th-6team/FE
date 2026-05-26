@@ -1,14 +1,14 @@
-import { useMemo, useState } from 'react';
-import styled from 'styled-components';
-import MobileLayout from '../components/common/MobileLayout';
-import Header from '../components/common/Header';
-import BottomNav from '../components/common/BottomNav';
-import FabButton from '../components/common/FabButton';
-import MonthlySummaryCard from '../components/main/MonthlySummaryCard';
-import CalendarCard from '../components/main/CalendarCard';
-import DailyExpenseList from '../components/main/DailyExpenseList';
-import { MOCK_EXPENSES } from '../data/mockExpenses';
-import { isSameDay } from '../utils/calendarUtils';
+import { useMemo, useState } from "react";
+import styled from "styled-components";
+import MobileLayout from "../components/common/MobileLayout";
+import Header from "../components/common/Header";
+import BottomNav from "../components/common/BottomNav";
+import FabButton from "../components/common/FabButton";
+import MonthlySummaryCard from "../components/main/MonthlySummaryCard";
+import CalendarCard from "../components/main/CalendarCard";
+import DailyExpenseList from "../components/main/DailyExpenseList";
+import { MOCK_EXPENSES } from "../data/mockExpenses";
+import { isSameDay } from "../utils/calendarUtils";
 
 function Home() {
   const today = new Date();
@@ -68,6 +68,6 @@ export default Home;
 const Body = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 16px;
   padding-bottom: 24px;
 `;

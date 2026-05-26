@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import FilterChip from './FilterChip';
 import Modal from '../common/Modal';
@@ -41,7 +42,7 @@ function PeriodFilter({ value, onChange }) {
       <Wrap>
         {showArrows && (
           <ArrowBtn type="button" onClick={shiftPrev} aria-label="이전">
-            ←
+            <ChevronLeft size={14} />
           </ArrowBtn>
         )}
 
@@ -53,7 +54,7 @@ function PeriodFilter({ value, onChange }) {
 
         {showArrows && (
           <ArrowBtn type="button" onClick={shiftNext} aria-label="다음">
-            →
+            <ChevronRight size={14} />
           </ArrowBtn>
         )}
       </Wrap>
@@ -169,11 +170,11 @@ function MonthView({ value, viewYear, onChangeYear, onPickAll, onPickYear, onPic
     <>
       <Header>
         <YearArrow type="button" onClick={() => onChangeYear(viewYear - 1)} aria-label="이전 연도">
-          ←
+          <ChevronLeft size={14} />
         </YearArrow>
         <YearLabel>{viewYear}년</YearLabel>
         <YearArrow type="button" onClick={() => onChangeYear(viewYear + 1)} aria-label="다음 연도">
-          →
+          <ChevronRight size={14} />
         </YearArrow>
       </Header>
 
@@ -244,15 +245,15 @@ function DayView({
     <>
       <Header>
         <BackBtn type="button" onClick={onBack} aria-label="뒤로">
-          ←
+          <ChevronLeft size={18} />
         </BackBtn>
         <DayHeaderCenter>
           <YearArrow type="button" onClick={() => onShiftMonth(-1)} aria-label="이전 달">
-            ←
+            <ChevronLeft size={14} />
           </YearArrow>
           <YearLabel>{viewYear}년 {viewMonth}월</YearLabel>
           <YearArrow type="button" onClick={() => onShiftMonth(+1)} aria-label="다음 달">
-            →
+            <ChevronRight size={14} />
           </YearArrow>
         </DayHeaderCenter>
         <BackBtnSpacer />

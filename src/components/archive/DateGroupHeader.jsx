@@ -1,5 +1,5 @@
-import styled from 'styled-components';
-import { formatShortDate } from '../../utils/dateUtils';
+import styled from "styled-components";
+import { formatShortDate } from "../../utils/dateUtils";
 
 /**
  * 날짜 그룹 헤더. "오늘 5월 6일" 같은 형식.
@@ -36,5 +36,5 @@ const Label = styled.span`
 const DateText = styled.span`
   font-size: ${({ theme }) => theme.fontSizes.xs};
   color: ${({ theme }) => theme.colors.text.secondary};
-  font-weight: 300;
+  font-weight: 500;
 `;

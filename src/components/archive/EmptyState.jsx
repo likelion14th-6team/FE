@@ -1,5 +1,5 @@
-import styled from 'styled-components';
-import Mochi from '../common/Mochi';
+import styled from "styled-components";
+import Mochi from "../common/Mochi";
 
 /**
  * 데이터 없을 때 안내 화면. 큰 모찌 + 텍스트 메시지.
@@ -15,7 +15,7 @@ import Mochi from '../common/Mochi';
  *  - title:      메인 메시지
  *  - description: 보조 메시지 (옵션)
  */
-function EmptyState({ expression = 'sleeping', title, description }) {
+function EmptyState({ expression = "sleeping", title, description }) {
   return (
     <Wrapper>
       <Mochi expression={expression} size="xl" />
@@ -38,7 +38,7 @@ const Wrapper = styled.div`
 
 const Title = styled.p`
   font-size: ${({ theme }) => theme.fontSizes.base};
-  font-weight: 700;
+  font-weight: 500;
   color: ${({ theme }) => theme.colors.text.ink};
   margin: 0;
   margin-top: 4px;
@@ -46,6 +46,7 @@ const Title = styled.p`
 
 const Description = styled.p`
   font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: 500;
   color: ${({ theme }) => theme.colors.text.secondary};
   margin: 0;
   line-height: 1.5;

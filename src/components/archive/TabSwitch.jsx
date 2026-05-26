@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
 /**
  * 두 탭 스위치 (전체 / 후회 소비).
@@ -56,18 +56,18 @@ const Tab = styled.button`
   flex: 1;
   height: 50px;
   border: none;
-  border-radius: ${({ $active }) => ($active ? '16px' : '12px')};
+  border-radius: ${({ $active }) => ($active ? "16px" : "12px")};
   cursor: pointer;
   font-family: inherit;
   font-size: ${({ theme }) => theme.fontSizes.lg};
-  font-weight: 700;
+  font-weight: 500;
   background: ${({ theme, $active }) =>
-    $active ? theme.colors.white : 'transparent'};
+    $active ? theme.colors.white : "transparent"};
   color: ${({ theme, $active, $activeColor }) =>
-    $active
-      ? $activeColor ?? theme.colors.text.ink
-      : theme.colors.text.ink};
+    $active ? ($activeColor ?? theme.colors.text.ink) : theme.colors.text.ink};
   box-shadow: ${({ theme, $active }) =>
-    $active ? theme.shadow.cardSoft : 'none'};
-  transition: background 0.15s, color 0.15s;
+    $active ? theme.shadow.cardSoft : "none"};
+  transition:
+    background 0.15s,
+    color 0.15s;
 `;

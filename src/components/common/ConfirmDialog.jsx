@@ -52,7 +52,7 @@ export default ConfirmDialog;
 const Title = styled.h3`
   margin: 0;
   font-size: ${({ theme }) => theme.fontSizes.lg};
-  font-weight: 800;
+  font-weight: 500;
   color: ${({ theme }) => theme.colors.text.ink};
   text-align: center;
   padding-top: 4px;

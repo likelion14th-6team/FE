@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
 /**
  * 정보 행의 우측에 들어가는 작은 칩.
@@ -10,14 +10,14 @@ import styled from 'styled-components';
  *
  * label은 기본값 자동 ("수정"/"불가"), 직접 override 가능.
  */
-function EditChip({ variant = 'edit', onClick, label }) {
-  const displayLabel = label ?? (variant === 'disabled' ? '불가' : '수정');
+function EditChip({ variant = "edit", onClick, label }) {
+  const displayLabel = label ?? (variant === "disabled" ? "불가" : "수정");
   return (
     <Chip
       type="button"
       $variant={variant}
-      onClick={variant === 'disabled' ? undefined : onClick}
-      disabled={variant === 'disabled'}
+      onClick={variant === "disabled" ? undefined : onClick}
+      disabled={variant === "disabled"}
     >
       {displayLabel}
     </Chip>
@@ -36,17 +36,14 @@ const Chip = styled.button`
   border-radius: ${({ theme }) => theme.radius.pill};
   font-family: inherit;
   font-size: ${({ theme }) => theme.fontSizes.xs};
-  font-weight: 700;
-  cursor: ${({ $variant }) => ($variant === 'disabled' ? 'not-allowed' : 'pointer')};
+  font-weight: 500;
+  cursor: ${({ $variant }) =>
+    $variant === "disabled" ? "not-allowed" : "pointer"};
 
   background: ${({ theme, $variant }) =>
-    $variant === 'disabled'
-      ? '#E5E5E5'
-      : theme.colors.accent.yellow};
+    $variant === "disabled" ? "#E5E5E5" : theme.colors.accent.yellow};
   color: ${({ theme, $variant }) =>
-    $variant === 'disabled'
-      ? '#999999'
-      : theme.colors.accent.yellowDark};
+    $variant === "disabled" ? "#999999" : theme.colors.accent.yellowDark};
 
   &:hover:not(:disabled) {
     opacity: 0.85;

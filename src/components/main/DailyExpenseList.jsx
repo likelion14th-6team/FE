@@ -1,9 +1,9 @@
-import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
-import Card from '../common/Card';
-import { CATEGORIES } from '../../utils/constants';
-import { formatCurrency } from '../../utils/formatCurrency';
-import { formatShortDateLabel } from '../../utils/calendarUtils';
+import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
+import Card from "../common/Card";
+import { CATEGORIES } from "../../utils/constants";
+import { formatCurrency } from "../../utils/formatCurrency";
+import { formatShortDateLabel } from "../../utils/calendarUtils";
 
 function DailyExpenseList({ dateKey, items = [] }) {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ function DailyExpenseList({ dateKey, items = [] }) {
       <Inner>
         <HeaderRow>
           <Title>{label} 소비 내역</Title>
-          <ViewAll type="button" onClick={() => navigate('/archive')}>
+          <ViewAll type="button" onClick={() => navigate("/archive")}>
             전체 보기 ›
           </ViewAll>
         </HeaderRow>
@@ -62,7 +62,7 @@ const HeaderRow = styled.div`
 const Title = styled.h3`
   margin: 0;
   font-size: ${({ theme }) => theme.fontSizes.lg};
-  font-weight: 700;
+  font-weight: 500;
 `;
 
 const ViewAll = styled.button`
@@ -115,7 +115,7 @@ const Meta = styled.div`
 
 const Name = styled.span`
   font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: 700;
+  font-weight: 500;
 `;
 
 const Sub = styled.span`
@@ -125,7 +125,7 @@ const Sub = styled.span`
 
 const Amount = styled.span`
   font-size: ${({ theme }) => theme.fontSizes.sm};
-  font-weight: 700;
+  font-weight: 500;
   flex-shrink: 0;
 `;
 

@@ -1,8 +1,15 @@
-import styled from 'styled-components';
-import Card from '../common/Card';
-import { buildMonthGrid, formatMonthLabel } from '../../utils/calendarUtils';
+import styled from "styled-components";
+import Card from "../common/Card";
+import { buildMonthGrid, formatMonthLabel } from "../../utils/calendarUtils";
 
-function CalendarCard({ year, month, selectedKey, onSelectDate, onPrevMonth, onNextMonth }) {
+function CalendarCard({
+  year,
+  month,
+  selectedKey,
+  onSelectDate,
+  onPrevMonth,
+  onNextMonth,
+}) {
   const { weekdays, cells } = buildMonthGrid(year, month);
 
   return (
@@ -79,7 +86,7 @@ const NavBtn = styled.button`
 const MonthTitle = styled.h3`
   margin: 0;
   font-size: ${({ theme }) => theme.fontSizes.lg};
-  font-weight: 700;
+  font-weight: 500;
 `;
 
 const Grid = styled.div`
@@ -117,7 +124,7 @@ const DayBtn = styled.button`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   cursor: pointer;
   background: ${({ theme, $selected }) =>
-    $selected ? theme.colors.nav.fill : 'transparent'};
+    $selected ? theme.colors.nav.fill : "transparent"};
   color: ${({ theme, $inMonth, $sunday, $selected }) => {
     if ($selected) return theme.colors.text.ink;
     if (!$inMonth) return theme.colors.text.gray;

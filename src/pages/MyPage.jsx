@@ -5,6 +5,8 @@ import MobileLayout from '../components/common/MobileLayout';
 import Header from '../components/common/Header';
 import BottomNav from '../components/common/BottomNav';
 
+import ConfirmDialog from '../components/common/ConfirmDialog';
+
 import MembershipBadge from '../components/mypage/MembershipBadge';
 import InfoRow from '../components/mypage/InfoRow';
 import EditChip from '../components/mypage/EditChip';
@@ -43,11 +45,15 @@ function MyPage() {
   const user = USERS[userType];
   const isKakao = user.type === 'kakao';
 
+  // 다이얼로그 오픈 상태
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+
   // 임시 핸들러 — 추후 API 연동/페이지 이동으로 교체
   const handleEdit = (field) => console.log('[mypage] edit', field);
   const handleEditBudget = () => console.log('[mypage] edit budget');
-  const handleLogout = () => console.log('[mypage] logout');
-  const handleWithdraw = () => console.log('[mypage] withdraw');
+  const handleLogoutConfirm = () => console.log('[mypage] logout confirmed');
+  const handleWithdrawConfirm = () => console.log('[mypage] withdraw confirmed');
 
   return (
     <MobileLayout>
@@ -116,15 +122,35 @@ function MyPage() {
         <BudgetCard amount={user.budget} onEdit={handleEditBudget} />
 
         {/* 로그아웃 + 회원 탈퇴 */}
-        <LogoutCard type="button" onClick={handleLogout}>
+        <LogoutCard type="button" onClick={() => setLogoutOpen(true)}>
           로그아웃
         </LogoutCard>
-        <WithdrawText type="button" onClick={handleWithdraw}>
+        <WithdrawText type="button" onClick={() => setWithdrawOpen(true)}>
           회원 탈퇴
         </WithdrawText>
       </Body>
 
       <BottomNav />
+
+      <ConfirmDialog
+        open={logoutOpen}
+        onClose={() => setLogoutOpen(false)}
+        title="로그아웃 하시겠어요?"
+        description={'다시 로그인하면 돌아올 수 있어요.'}
+        confirmLabel="로그아웃"
+        confirmVariant="primary"
+        onConfirm={handleLogoutConfirm}
+      />
+
+      <ConfirmDialog
+        open={withdrawOpen}
+        onClose={() => setWithdrawOpen(false)}
+        title="정말 탈퇴하시겠어요?"
+        description={'탈퇴하면 그동안의 소비 기록과\n만족도 데이터가 모두 사라져요.'}
+        confirmLabel="탈퇴하기"
+        confirmVariant="danger"
+        onConfirm={handleWithdrawConfirm}
+      />
     </MobileLayout>
   );
 }

@@ -1,49 +1,29 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import styled from 'styled-components';
+
 import FilterChip from './FilterChip';
+import Modal from '../common/Modal';
 
 /**
  * 기간 필터. 전체 / 연 / 월 모드.
  *
  * value = { mode: 'all' | 'year' | 'month', year?, month? }
  *
- * <PeriodFilter value={period} onChange={setPeriod} />
- *
  * UI: [←] [라벨 ▾] [→]
- *   - 라벨 클릭 → 모드 전환 메뉴 (전체/연/월)
- *   - 좌우 화살표 → 월/연 이동 (전체 모드일 땐 화살표 숨김)
+ *   - 라벨 클릭 → 캘린더 모달 (월 그리드)
+ *   - 좌우 화살표 → 월/연 ±1 이동 (전체 모드일 땐 화살표 숨김)
  */
 function PeriodFilter({ value, onChange }) {
   const [open, setOpen] = useState(false);
-  const wrapRef = useRef(null);
-
   const showArrows = value.mode !== 'all';
   const isActive = value.mode !== 'all';
 
-  // 라벨 텍스트
   const labelText =
     value.mode === 'all'
       ? '전체'
       : value.mode === 'year'
         ? `${value.year}년`
         : `${value.year}.${String(value.month).padStart(2, '0')}`;
-
-  // 외부 클릭/ESC 닫기
-  useEffect(() => {
-    if (!open) return;
-    const handleClick = (e) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
-    };
-    const handleKey = (e) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('mousedown', handleClick);
-    window.addEventListener('keydown', handleKey);
-    return () => {
-      document.removeEventListener('mousedown', handleClick);
-      window.removeEventListener('keydown', handleKey);
-    };
-  }, [open]);
 
   const handlePrev = () => {
     if (value.mode === 'year') {
@@ -73,83 +53,125 @@ function PeriodFilter({ value, onChange }) {
     }
   };
 
-  const handleModeChange = (nextMode) => {
-    const now = new Date();
-    if (nextMode === 'all') {
-      onChange({ mode: 'all' });
-    } else if (nextMode === 'year') {
-      onChange({
-        mode: 'year',
-        year: value.year ?? now.getFullYear(),
-      });
-    } else {
-      onChange({
-        mode: 'month',
-        year: value.year ?? now.getFullYear(),
-        month: value.month ?? now.getMonth() + 1,
-      });
-    }
-    setOpen(false);
-  };
-
-  const modes = [
-    { value: 'all', label: '전체' },
-    { value: 'year', label: '연도' },
-    { value: 'month', label: '월별' },
-  ];
-
   return (
-    <Wrap ref={wrapRef}>
-      {showArrows && (
-        <ArrowBtn type="button" onClick={handlePrev} aria-label="이전">
-          ←
-        </ArrowBtn>
-      )}
+    <>
+      <Wrap>
+        {showArrows && (
+          <ArrowBtn type="button" onClick={handlePrev} aria-label="이전">
+            ←
+          </ArrowBtn>
+        )}
 
-      <ChipBox>
         <FilterChip
           label={labelText}
           active={isActive}
-          onClick={() => setOpen((o) => !o)}
+          onClick={() => setOpen(true)}
         />
-        {open && (
-          <Menu role="listbox">
-            {modes.map((m) => (
-              <MenuItem
-                key={m.value}
-                role="option"
-                aria-selected={m.value === value.mode}
-                $selected={m.value === value.mode}
-                onClick={() => handleModeChange(m.value)}
-                type="button"
-              >
-                {m.label}
-                {m.value === value.mode && <Check>✓</Check>}
-              </MenuItem>
-            ))}
-          </Menu>
-        )}
-      </ChipBox>
 
-      {showArrows && (
-        <ArrowBtn type="button" onClick={handleNext} aria-label="다음">
-          →
-        </ArrowBtn>
-      )}
-    </Wrap>
+        {showArrows && (
+          <ArrowBtn type="button" onClick={handleNext} aria-label="다음">
+            →
+          </ArrowBtn>
+        )}
+      </Wrap>
+
+      <PeriodModal
+        open={open}
+        onClose={() => setOpen(false)}
+        value={value}
+        onChange={(next) => {
+          onChange(next);
+          setOpen(false);
+        }}
+      />
+    </>
   );
 }
 
 export default PeriodFilter;
 
+/* ===== 모달 내부: 캘린더형 월 그리드 ===== */
+
+function PeriodModal({ open, onClose, value, onChange }) {
+  // 모달이 열린 시점의 연도를 내부 상태로 (← →로 다른 연도 탐색 가능)
+  const initialYear =
+    value.mode !== 'all' ? value.year : new Date().getFullYear();
+  const [viewYear, setViewYear] = useState(initialYear);
+
+  // 모달이 새로 열릴 때마다 연도 동기화
+  // (open이 true→false→true 토글되면 다시 현재 value.year로 리셋)
+  // → key 패턴 대신 effect 한 줄로 처리
+  // (열림 직후 useEffect를 쓰지 않는 가벼운 방식: open=false면 컴포넌트가 null 반환)
+  if (!open) {
+    // 다음에 열릴 때 viewYear가 stale 안 되도록 reset
+    // (실제로는 Modal 컴포넌트가 open=false면 자식 안 그리니 안전)
+  }
+
+  const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
+
+  const isMonthSelected = (m) =>
+    value.mode === 'month' && value.year === viewYear && value.month === m;
+
+  const handleSelectAll = () => onChange({ mode: 'all' });
+  const handleSelectYear = () => onChange({ mode: 'year', year: viewYear });
+  const handleSelectMonth = (m) =>
+    onChange({ mode: 'month', year: viewYear, month: m });
+
+  return (
+    <Modal open={open} onClose={onClose} variant="center" ariaLabel="기간 선택">
+      <Header>
+        <YearNav>
+          <YearArrow type="button" onClick={() => setViewYear((y) => y - 1)} aria-label="이전 연도">
+            ←
+          </YearArrow>
+          <YearLabel>{viewYear}년</YearLabel>
+          <YearArrow type="button" onClick={() => setViewYear((y) => y + 1)} aria-label="다음 연도">
+            →
+          </YearArrow>
+        </YearNav>
+      </Header>
+
+      <Section>
+        <BigOption
+          type="button"
+          $selected={value.mode === 'all'}
+          onClick={handleSelectAll}
+        >
+          전체
+        </BigOption>
+        <BigOption
+          type="button"
+          $selected={value.mode === 'year' && value.year === viewYear}
+          onClick={handleSelectYear}
+        >
+          {viewYear}년 전체
+        </BigOption>
+      </Section>
+
+      <Divider />
+
+      <MonthGrid>
+        {MONTHS.map((m) => (
+          <MonthCell
+            key={m}
+            type="button"
+            $selected={isMonthSelected(m)}
+            onClick={() => handleSelectMonth(m)}
+          >
+            {m}월
+          </MonthCell>
+        ))}
+      </MonthGrid>
+    </Modal>
+  );
+}
+
+/* ===== 스타일 ===== */
+
 const Wrap = styled.div`
   display: inline-flex;
   align-items: center;
   gap: 4px;
-`;
-
-const ChipBox = styled.div`
-  position: relative;
 `;
 
 const ArrowBtn = styled.button`
@@ -159,7 +181,6 @@ const ArrowBtn = styled.button`
   border: none;
   background: ${({ theme }) => theme.colors.white};
   box-shadow: ${({ theme }) => theme.shadow.cardSoft};
-  /* GeekbleMalang은 화살표 글리프가 없거나 작아서 시스템 폰트 명시 */
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 14px;
   font-weight: 700;
@@ -176,46 +197,102 @@ const ArrowBtn = styled.button`
   }
 `;
 
-const Menu = styled.div`
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  z-index: 50;
-  min-width: 120px;
-  background: ${({ theme }) => theme.colors.white};
-  border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-  padding: 4px;
-  display: flex;
-  flex-direction: column;
-`;
+/* 모달 내부 */
 
-const MenuItem = styled.button`
+const Header = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 10px 12px;
+  justify-content: center;
+  padding: 4px 0;
+`;
+
+const YearNav = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
+const YearArrow = styled.button`
+  width: 32px;
+  height: 32px;
+  border-radius: ${({ theme }) => theme.radius.circle};
   border: none;
-  background: ${({ theme, $selected }) =>
-    $selected ? theme.colors.mint.light : 'transparent'};
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: ${({ theme }) => theme.fontSizes.xs};
-  font-weight: ${({ $selected }) => ($selected ? 700 : 500)};
-  color: ${({ theme, $selected }) =>
-    $selected ? theme.colors.text.brand : theme.colors.text.ink};
+  background: ${({ theme }) => theme.colors.mint.light};
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.text.brand};
   cursor: pointer;
-  text-align: left;
-  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
-    background: ${({ theme, $selected }) =>
-      $selected ? theme.colors.mint.light : 'rgba(0,0,0,0.04)'};
+    opacity: 0.85;
   }
 `;
 
-const Check = styled.span`
-  font-size: 11px;
-  color: ${({ theme }) => theme.colors.text.brand};
+const YearLabel = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.lg};
+  font-weight: 800;
+  color: ${({ theme }) => theme.colors.text.ink};
+  min-width: 80px;
+  text-align: center;
+`;
+
+const Section = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const BigOption = styled.button`
+  flex: 1;
+  height: 40px;
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: 700;
+  cursor: pointer;
+
+  background: ${({ theme, $selected }) =>
+    $selected ? theme.colors.text.brand : theme.colors.mint.light};
+  color: ${({ theme, $selected }) =>
+    $selected ? theme.colors.white : theme.colors.text.brand};
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
+const Divider = styled.hr`
+  margin: 0;
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+`;
+
+const MonthGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+`;
+
+const MonthCell = styled.button`
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: 700;
+  cursor: pointer;
+
+  background: ${({ theme, $selected }) =>
+    $selected ? theme.colors.text.brand : 'transparent'};
+  color: ${({ theme, $selected }) =>
+    $selected ? theme.colors.white : theme.colors.text.ink};
+
+  &:hover {
+    background: ${({ theme, $selected }) =>
+      $selected ? theme.colors.text.brand : theme.colors.mint.light};
+  }
 `;

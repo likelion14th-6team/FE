@@ -17,6 +17,12 @@ const GlobalStyle = createGlobalStyle`
 
   html, body, #root {
     min-height: 100vh;
+    width: 100%;
+  }
+
+  #root {
+    display: flex;
+    justify-content: center;
   }
 
   body {

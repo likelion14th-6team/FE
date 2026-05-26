@@ -1,64 +1,48 @@
 import styled from 'styled-components';
+import { MOCHI_IMAGES } from '../../constants/mochiImages';
+import { MOCHI_SIZES } from '../../constants/mochiSizes';
 
 /**
- * 캐릭터 '모찌' (Placeholder 버전).
- * 진짜 이미지가 들어올 때까지 민트색 원 + 이모지로 대신함.
+ * Figma 디자인 캐릭터(모찌)
  *
- * 이미지 교체 시 (TODO):
- *   1. /public/characters/mochi-{expression}.png 8장 배치
- *   2. 아래 <Bubble> 자리를 <img src={`/characters/mochi-${expression}.png`} ... /> 로 교체
- *   3. EXPRESSION_EMOJI 객체 삭제
- *   → 사용처(<Mochi expression="..." />)는 그대로 둠.
- *
- * 사용 예:
- *   <Mochi expression="sleeping" size="xl" />
- *   <Mochi expression="happy_wave" />          // size 기본값 md
+ * <Mochi expression="main" />       — 메인 요약 카드
+ * <Mochi expression="report" />     — 리포트 하단 팁
+ * <Mochi expression="happy_wave" size="xl" />
  */
-
-const EXPRESSION_EMOJI = {
-  happy_wave: '👋',
-  smile: '🙂',
-  neutral: '😐',
-  excited: '🤩',
-  rest: '😌',
-  thinking: '🤔',
-  sad: '😢',
-  sleeping: '😴',
-};
-
-const SIZE_PX = {
-  sm: 40,
-  md: 60,
-  lg: 80,
-  xl: 120,
-};
-
-function Mochi({ expression = 'smile', size = 'md' }) {
-  const emoji = EXPRESSION_EMOJI[expression] ?? EXPRESSION_EMOJI.smile;
-  const px = SIZE_PX[size] ?? SIZE_PX.md;
+function Mochi({ expression = 'smile', size = 'md', className }) {
+  const src = MOCHI_IMAGES[expression] ?? MOCHI_IMAGES.default;
+  const dims = MOCHI_SIZES[expression] ?? MOCHI_SIZES[size] ?? MOCHI_SIZES.md;
 
   return (
-    <Bubble $px={px} role="img" aria-label={`모찌 - ${expression}`}>
-      <Emoji $px={px}>{emoji}</Emoji>
-    </Bubble>
+    <Wrap
+      className={className}
+      $w={dims.width}
+      $h={dims.height}
+      role="img"
+      aria-label={`모찌 - ${expression}`}
+    >
+      <Img src={src} alt="" />
+    </Wrap>
   );
 }
 
 export default Mochi;
 
-const Bubble = styled.div`
-  width: ${({ $px }) => `${$px}px`};
-  height: ${({ $px }) => `${$px}px`};
-  border-radius: ${({ theme }) => theme.radius.circle};
-  background: ${({ theme }) => theme.colors.mint.dark};
+const Wrap = styled.div`
+  width: ${({ $w }) => `${$w}px`};
+  height: ${({ $h }) => `${$h}px`};
+  flex-shrink: 0;
   display: inline-flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  box-shadow: ${({ theme }) => theme.shadow.cardSoft};
 `;
 
-const Emoji = styled.span`
-  /* 이모지 크기는 컨테이너의 60%로 자동 스케일 */
-  font-size: ${({ $px }) => `${Math.round($px * 0.6)}px`};
-  line-height: 1;
+const Img = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  pointer-events: none;
+  user-select: none;
+  display: block;
 `;

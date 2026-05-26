@@ -1,0 +1,54 @@
+import styled from 'styled-components';
+
+/**
+ * 드롭다운 칩. "2026.05 ▾" / "전체 ▾" / "최신순 ▾" 등.
+ * 클릭 시 onClick 실행 — 드롭다운 메뉴는 부모가 띄움 (지금은 동작 안 함).
+ *
+ * <FilterChip label="2026.05" onClick={...} />
+ * <FilterChip label="최신순" active onClick={...} />
+ *
+ * props:
+ *  - label:    표시 텍스트
+ *  - active:   true면 노란 배경 (강조). 기본 false
+ *  - hasArrow: 화살표 ▾ 표시. 기본 true
+ *  - onClick
+ */
+function FilterChip({ label, active = false, hasArrow = true, onClick }) {
+  return (
+    <Chip $active={active} onClick={onClick} type="button">
+      <span>{label}</span>
+      {hasArrow && <Arrow>▾</Arrow>}
+    </Chip>
+  );
+}
+
+export default FilterChip;
+
+const Chip = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: ${({ theme }) => theme.radius.pill};
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-weight: 600;
+  background: ${({ theme, $active }) =>
+    $active ? theme.colors.accent.yellow : theme.colors.white};
+  color: ${({ theme, $active }) =>
+    $active ? theme.colors.accent.yellowDark : theme.colors.text.ink};
+  box-shadow: ${({ theme }) => theme.shadow.cardSoft};
+  transition: background 0.15s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+`;
+
+const Arrow = styled.span`
+  font-size: 10px;
+  line-height: 1;
+`;

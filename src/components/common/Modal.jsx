@@ -104,10 +104,10 @@ const CenterBox = styled.div`
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: calc(100% - 56px);
-  max-width: 360px;
+  width: calc(100% - 40px);
+  max-width: 400px;
   border-radius: 20px;
-  padding: 24px 22px 18px;
+  padding: 24px 22px 22px;
   animation: ${popIn} 0.18s ease-out;
   display: flex;
   flex-direction: column;

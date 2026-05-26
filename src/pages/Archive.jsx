@@ -41,8 +41,13 @@ function filterByPeriod(items, period) {
     const d = new Date(it.date);
     const y = d.getFullYear();
     const m = d.getMonth() + 1;
+    const dd = d.getDate();
     if (period.mode === 'year') return y === period.year;
-    return y === period.year && m === period.month;
+    if (period.mode === 'month') return y === period.year && m === period.month;
+    if (period.mode === 'day') {
+      return y === period.year && m === period.month && dd === period.day;
+    }
+    return true;
   });
 }
 
@@ -165,7 +170,12 @@ function Archive() {
             onChange={setCategoryFilter}
             options={CATEGORY_OPTIONS}
             active={categoryFilter !== 'all'}
-            defaultLabel="전체"
+            defaultLabel="카테고리"
+            label={
+              categoryFilter === 'all'
+                ? '카테고리'
+                : CATEGORY_OPTIONS.find((o) => o.value === categoryFilter)?.label
+            }
           />
 
           <FilterDropdown

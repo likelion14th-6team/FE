@@ -20,13 +20,14 @@ import FilterChip from './FilterChip';
  *   defaultLabel="전체"  // value가 옵션에 없을 때 fallback (선택)
  * />
  */
-function FilterDropdown({ value, onChange, options, active, defaultLabel }) {
+function FilterDropdown({ value, onChange, options, active, defaultLabel, label }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
 
-  // 현재 value에 해당하는 옵션의 라벨
+  // 칩 표시용 라벨 — 외부 label prop이 있으면 그것을 우선,
+  // 없으면 옵션에서 매칭되는 라벨, 둘 다 없으면 defaultLabel.
   const currentLabel =
-    options.find((o) => o.value === value)?.label ?? defaultLabel ?? '';
+    label ?? options.find((o) => o.value === value)?.label ?? defaultLabel ?? '';
 
   // 외부 클릭 시 닫기
   useEffect(() => {

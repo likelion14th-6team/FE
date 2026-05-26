@@ -1,12 +1,37 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import MobileLayout from '../components/common/MobileLayout';
+import Button from '../components/common/Button';
+import Mochi from '../components/common/Mochi';
+import AuthField from '../components/auth/AuthField';
+import Header from '../components/common/Header';
+
+const AGE_OPTIONS = ['10대', '20대', '30대', '40대', '50대+'];
 
 function Signup() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '', passwordConfirm: '' });
+  const [form, setForm] = useState({
+    name: '',
+    username: '',
+    password: '',
+    passwordConfirm: '',
+    phone: '',
+    email: '',
+    nickname: '',
+    gender: 'male',
+    ageGroup: '20대',
+    budget: '',
+    terms: false,
+    privacy: false,
+    marketing: false,
+  });
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const set = (key) => (e) =>
+    setForm((prev) => ({
+      ...prev,
+      [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value,
+    }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -14,127 +39,114 @@ function Signup() {
       alert('비밀번호가 일치하지 않습니다.');
       return;
     }
+    if (!form.terms || !form.privacy) {
+      alert('필수 약관에 동의해주세요.');
+      return;
+    }
     navigate('/login');
   };
 
   return (
-    <Wrapper>
-      <TopBar>
-        <BackButton onClick={() => navigate(-1)}>←</BackButton>
-      </TopBar>
-
-      <Card>
-        <Logo>slog</Logo>
-        <Subtitle>회원가입</Subtitle>
+    <MobileLayout $hasBottomNav={false}>
+      <Header align="left" title="회원가입" showBack />
+      <Page>
+        <Hero>
+          <Mochi expression="excited" size="xl" />
+          <HeroText>함께 시작해요!</HeroText>
+        </Hero>
 
         <Form onSubmit={handleSubmit}>
-          <FieldLabel>이름<Input type="text" name="name" value={form.name} onChange={handleChange} placeholder="이름" required /></FieldLabel>
-          <FieldLabel>이메일<Input type="email" name="email" value={form.email} onChange={handleChange} placeholder="email@example.com" required /></FieldLabel>
-          <FieldLabel>비밀번호<Input type="password" name="password" value={form.password} onChange={handleChange} placeholder="비밀번호 입력" required /></FieldLabel>
-          <FieldLabel>비밀번호 확인<Input type="password" name="passwordConfirm" value={form.passwordConfirm} onChange={handleChange} placeholder="비밀번호 다시 입력" required /></FieldLabel>
-          <PrimaryButton type="submit">가입하기</PrimaryButton>
-        </Form>
+          <AuthField label="이름 *" name="name" value={form.name} onChange={set('name')} placeholder="이름을 입력해주세요" required />
 
-        <LoginRow>
-          이미 계정이 있으신가요?{' '}
-          <LinkBtn onClick={() => navigate('/login')}>로그인</LinkBtn>
-        </LoginRow>
-      </Card>
-    </Wrapper>
+          <AuthField
+            label="아이디"
+            name="username"
+            value={form.username}
+            onChange={set('username')}
+            placeholder="영문/숫자 6~20자"
+            required
+            action={
+              <DupBtn type="button">중복확인</DupBtn>
+            }
+          />
+
+          <AuthField label="비밀번호 *" name="password" type="password" value={form.password} onChange={set('password')} placeholder="영문/숫자/특수문자 포함 8자 이상" required />
+          <AuthField label="비밀번호 확인 *" name="passwordConfirm" type="password" value={form.passwordConfirm} onChange={set('passwordConfirm')} placeholder="비밀번호 재입력" required />
+          <AuthField label="전화번호 *" name="phone" value={form.phone} onChange={set('phone')} placeholder="010-0000-0000" required />
+          <AuthField label="이메일 *" name="email" type="email" value={form.email} onChange={set('email')} placeholder="example@email.com" required />
+          <AuthField label="별명 *" name="nickname" value={form.nickname} onChange={set('nickname')} placeholder="앱 내 표시명" required />
+
+          <Row2>
+            <GenderCard>
+              <GenderLabel>성별</GenderLabel>
+              <GenderBtns>
+                <GenderBtn type="button" $active={form.gender === 'male'} onClick={() => setForm((p) => ({ ...p, gender: 'male' }))}>
+                  남
+                </GenderBtn>
+                <GenderBtn type="button" $active={form.gender === 'female'} onClick={() => setForm((p) => ({ ...p, gender: 'female' }))}>
+                  여
+                </GenderBtn>
+              </GenderBtns>
+            </GenderCard>
+            <AgeCard>
+              <GenderLabel>연령대</GenderLabel>
+              <AgeSelect value={form.ageGroup} onChange={set('ageGroup')}>
+                {AGE_OPTIONS.map((a) => (
+                  <option key={a} value={a}>
+                    {a}
+                  </option>
+                ))}
+              </AgeSelect>
+            </AgeCard>
+          </Row2>
+
+          <AuthField label="월 예산 *" name="budget" value={form.budget} onChange={set('budget')} placeholder="예: 500,000원" required />
+
+          <Terms>
+            <CheckRow>
+              <input type="checkbox" checked={form.terms} onChange={set('terms')} />
+              <span>[필수] 서비스 이용약관</span>
+            </CheckRow>
+            <CheckRow>
+              <input type="checkbox" checked={form.privacy} onChange={set('privacy')} />
+              <span>[필수] 개인정보 처리방침</span>
+            </CheckRow>
+            <CheckRow>
+              <input type="checkbox" checked={form.marketing} onChange={set('marketing')} />
+              <span>[선택] 마케팅 정보 수신</span>
+            </CheckRow>
+          </Terms>
+
+          <Button type="submit" size="lg" fullWidth>
+            가입 완료
+          </Button>
+        </Form>
+      </Page>
+    </MobileLayout>
   );
 }
 
 export default Signup;
 
-const PrimaryButton = styled.button`
-  width: 100%;
-  padding: 14px;
-  background: #0f131c;
-  color: #fff;
-  border: none;
-  border-radius: 16px;
-  font-size: 16px;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-  &:hover { opacity: 0.85; }
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid rgba(15, 19, 28, 0.12);
-  border-radius: 10px;
-  font-size: 15px;
-  font-family: inherit;
-  outline: none;
-  background: rgba(255, 255, 255, 0.7);
-  &:focus { border-color: #0f131c; background: #fff; }
-`;
-
-const FieldLabel = styled.label`
+const Page = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-weight: 500;
-  color: #77927e;
-  font-size: 13px;
+  gap: 16px;
+  padding-bottom: 40px;
 `;
 
-const BackButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: rgba(255, 255, 255, 0.6);
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 18px;
-  color: #0f131c;
-  &:hover { background: rgba(255, 255, 255, 0.85); }
-`;
-
-const Wrapper = styled.div`
-  min-height: 100vh;
+const Hero = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 26px;
-  max-width: 393px;
-  margin: 0 auto;
+  gap: 12px;
+  padding: 8px 0;
 `;
 
-const TopBar = styled.div`
-  width: 100%;
-  max-width: 393px;
-  margin-bottom: 12px;
-`;
-
-const Card = styled.div`
-  width: 100%;
-  max-width: 393px;
-  background: #fff;
-  padding: 40px 32px;
-  border-radius: 20px;
-  box-shadow: 0 4px 26px rgba(0, 0, 0, 0.06);
-`;
-
-const Logo = styled.h1`
-  font-family: 'GeekbleMalang', sans-serif;
-  font-weight: 800;
-  font-size: 44px;
-  text-align: center;
-  color: #0f131c;
-`;
-
-const Subtitle = styled.p`
-  text-align: center;
-  color: #aaa;
-  font-weight: 300;
-  margin: 8px 0 32px;
+const HeroText = styled.p`
+  margin: 0;
+  font-size: ${({ theme }) => theme.fontSizes.base};
+  color: ${({ theme }) => theme.colors.text.brand};
 `;
 
 const Form = styled.form`
@@ -143,22 +155,80 @@ const Form = styled.form`
   gap: 16px;
 `;
 
-const LoginRow = styled.p`
-  text-align: center;
-  margin-top: 20px;
-  color: #888;
-  font-weight: 300;
-  font-size: 14px;
+const DupBtn = styled.button`
+  flex-shrink: 0;
+  border: none;
+  border-radius: 10px;
+  padding: 6px 12px;
+  background: ${({ theme }) => theme.colors.accent.pointBox};
+  color: ${({ theme }) => theme.colors.accent.yellowDark};
+  font-family: inherit;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: 700;
+  cursor: pointer;
 `;
 
-const LinkBtn = styled.button`
-  background: none;
+const Row2 = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+`;
+
+const GenderCard = styled.div`
+  background: ${({ theme }) => theme.colors.white};
+  border-radius: ${({ theme }) => theme.radius.cardLg};
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const AgeCard = styled(GenderCard)``;
+
+const GenderLabel = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.lg};
+  color: ${({ theme }) => theme.colors.text.brand2};
+`;
+
+const GenderBtns = styled.div`
+  display: flex;
+  gap: 8px;
+`;
+
+const GenderBtn = styled.button`
   border: none;
-  color: #0f131c;
-  font-weight: 700;
+  border-radius: 6px;
+  padding: 6px 18px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
   cursor: pointer;
-  text-decoration: underline;
-  padding: 0;
+  background: ${({ theme, $active }) =>
+    $active ? theme.colors.nav.fill : theme.colors.mint.light};
+  color: ${({ theme, $active }) =>
+    $active ? theme.colors.white : theme.colors.text.ink};
+`;
+
+const AgeSelect = styled.select`
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: ${({ theme }) => theme.fontSizes.base};
+  color: ${({ theme }) => theme.colors.text.ink};
+  outline: none;
+  cursor: pointer;
+`;
+
+const Terms = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+`;
+
+const CheckRow = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  cursor: pointer;
 `;

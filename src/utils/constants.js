@@ -2,13 +2,13 @@
 // 백엔드 응답이 없을 때 더미용으로 쓰고, 백엔드 카테고리 키와 매핑 키도 동일하게 유지 권장.
 
 export const CATEGORIES = {
-  food:      { key: 'food',      label: '식비',   emoji: '🍚', color: '#FFB088' },
-  transport: { key: 'transport', label: '교통',   emoji: '🚇', color: '#A5C9E0' },
-  cafe:      { key: 'cafe',      label: '카페',   emoji: '☕', color: '#C9A88A' },
-  shopping:  { key: 'shopping',  label: '쇼핑',   emoji: '🛍️', color: '#F5A8B8' },
-  culture:   { key: 'culture',   label: '문화',   emoji: '🎬', color: '#C5A8E0' },
+  food:      { key: 'food',      label: '식비',   emoji: '🍚', color: '#F4A97F' },
+  transport: { key: 'transport', label: '교통',   emoji: '🚇', color: '#7BB8D4' },
+  cafe:      { key: 'cafe',      label: '카페',   emoji: '☕', color: '#F4A97F' },
+  shopping:  { key: 'shopping',  label: '쇼핑',   emoji: '🛍️', color: '#C49BD4' },
+  culture:   { key: 'culture',   label: '문화',   emoji: '🎬', color: '#F0C96A' },
   clothing:  { key: 'clothing',  label: '의류',   emoji: '👕', color: '#FFD479' },
-  etc:       { key: 'etc',       label: '기타',   emoji: '📦', color: '#B8B8B8' },
+  etc:       { key: 'etc',       label: '기타',   emoji: '📦', color: '#B0B8B4' },
 };
 
 // 배열 형태로도 쓸 수 있게 (필터 칩 등에서 map 돌릴 때 편함)

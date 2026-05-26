@@ -1,116 +1,73 @@
-import { useNavigate } from 'react-router-dom';
+import { useMemo, useState } from 'react';
 import styled from 'styled-components';
-
-const PAGES = [
-  { path: '/login', label: '로그인', emoji: '🔑', desc: 'Login' },
-  { path: '/signup', label: '회원가입', emoji: '📝', desc: 'Signup' },
-  { path: '/archive', label: '아카이브', emoji: '📂', desc: 'Archive' },
-  { path: '/register', label: '소비 등록', emoji: '💸', desc: 'Register' },
-  { path: '/report', label: '리포트', emoji: '📊', desc: 'Report' },
-  { path: '/mypage', label: '마이페이지', emoji: '👤', desc: 'MyPage' },
-];
+import MobileLayout from '../components/common/MobileLayout';
+import Header from '../components/common/Header';
+import BottomNav from '../components/common/BottomNav';
+import FabButton from '../components/common/FabButton';
+import MonthlySummaryCard from '../components/main/MonthlySummaryCard';
+import CalendarCard from '../components/main/CalendarCard';
+import DailyExpenseList from '../components/main/DailyExpenseList';
+import { MOCK_EXPENSES } from '../data/mockExpenses';
+import { isSameDay } from '../utils/calendarUtils';
 
 function Home() {
-  const navigate = useNavigate();
+  const today = new Date();
+  const [year, setYear] = useState(today.getFullYear());
+  const [month, setMonth] = useState(today.getMonth() + 1);
+  const [selectedDate, setSelectedDate] = useState(today);
+
+  const selectedKey = selectedDate.toISOString().slice(0, 10);
+
+  const dayExpenses = useMemo(
+    () => MOCK_EXPENSES.filter((e) => isSameDay(e.date, selectedKey)),
+    [selectedKey],
+  );
+
+  const handlePrevMonth = () => {
+    if (month === 1) {
+      setYear((y) => y - 1);
+      setMonth(12);
+    } else setMonth((m) => m - 1);
+  };
+
+  const handleNextMonth = () => {
+    if (month === 12) {
+      setYear((y) => y + 1);
+      setMonth(1);
+    } else setMonth((m) => m + 1);
+  };
 
   return (
-    <Wrapper>
-      <Logo>slog</Logo>
-      <Subtitle>페이지 네비게이션 (임시)</Subtitle>
-
-      <Grid>
-        {PAGES.map((p) => (
-          <PageCard key={p.path} onClick={() => navigate(p.path)}>
-            <Emoji>{p.emoji}</Emoji>
-            <Name>{p.label}</Name>
-            <Desc>{p.desc}</Desc>
-          </PageCard>
-        ))}
-      </Grid>
-
-      <Badge>배포 전 임시 화면</Badge>
-    </Wrapper>
+    <MobileLayout>
+      <Header title="메인" />
+      <Body>
+        <MonthlySummaryCard
+          userName="박재영"
+          monthLabel={`${year}년 ${month}월`}
+          budget={1000000}
+          spent={420000}
+        />
+        <CalendarCard
+          year={year}
+          month={month}
+          selectedKey={selectedKey}
+          onSelectDate={setSelectedDate}
+          onPrevMonth={handlePrevMonth}
+          onNextMonth={handleNextMonth}
+        />
+        <DailyExpenseList dateKey={selectedKey} items={dayExpenses} />
+      </Body>
+      <FabButton />
+      <BottomNav />
+    </MobileLayout>
   );
 }
 
 export default Home;
 
-const Wrapper = styled.div`
-  min-height: 100vh;
+const Body = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 48px 26px 40px;
-  max-width: 393px;
-  margin: 0 auto;
-`;
-
-const Logo = styled.h1`
-  font-family: 'GeekbleMalang', sans-serif;
-  font-weight: 800;
-  font-size: 52px;
-  color: #0f131c;
-  margin-bottom: 6px;
-`;
-
-const Subtitle = styled.p`
-  font-size: 13px;
-  font-weight: 300;
-  color: #aaa;
-  margin-bottom: 36px;
-`;
-
-const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-  width: 100%;
-`;
-
-const PageCard = styled.button`
-  background: #fff;
-  border: none;
-  border-radius: 16px;
-  padding: 26px 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  cursor: pointer;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-  transition: transform 0.15s, box-shadow 0.15s;
-  text-align: left;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.09);
-  }
-`;
-
-const Emoji = styled.span`
-  font-size: 28px;
-  margin-bottom: 4px;
-`;
-
-const Name = styled.span`
-  font-weight: 700;
-  font-size: 16px;
-  color: #0f131c;
-  font-family: 'GeekbleMalang', sans-serif;
-`;
-
-const Desc = styled.span`
-  font-size: 12px;
-  font-weight: 300;
-  color: #aaa;
-`;
-
-const Badge = styled.div`
-  margin-top: 36px;
-  padding: 6px 14px;
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #888;
+  gap: 32px;
+  padding-bottom: 24px;
 `;

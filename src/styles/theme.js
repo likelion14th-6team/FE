@@ -16,30 +16,44 @@ const theme = {
     },
     // 텍스트
     text: {
-      primary: '#2C3E2D',   // 본문 메인
-      secondary: '#7A8F7C', // 보조
-      brand: '#1A4D3A',     // 강조/제목
-      ink: '#0f131c',       // 기존 페이지가 쓰는 잉크 컬러 (호환용)
+      primary: '#2C3E2D',
+      secondary: '#7A8F7C',
+      brand: '#1A4D3A',
+      brand2: '#587E3F',
+      gray: '#9A9490',
+      ink: '#0f131c',
+      sunday: '#F27A6E',
     },
     // 포인트
     accent: {
       yellow: '#FFE066',
-      yellowDark: '#6B5B0C', // 옐로우 위 텍스트
+      yellowDark: '#6B5B0C',
+      pointBox: '#F7E264',
+      kakao: '#FEE500',
     },
-    // 상태
+    nav: {
+      fill: '#6BBFAA',
+    },
     danger: '#FF8B8B',
+    regret: '#FF6E6E',
     star: {
       active: '#FFC93C',
       inactive: '#B8B8B8',
     },
     // 카테고리 (소비 분류)
     category: {
-      food: '#FFB088',
-      transport: '#A5C9E0',
-      shopping: '#F5A8B8',
-      culture: '#C5A8E0',
+      food: '#F4A97F',
+      transport: '#7BB8D4',
+      shopping: '#C49BD4',
+      culture: '#F0C96A',
+      cafe: '#F4A97F',
       clothing: '#FFD479',
-      etc: '#B8B8B8',
+      etc: '#B0B8B4',
+    },
+    progress: {
+      track: '#D6EDE5',
+      fillStart: '#89C4E1',
+      fillEnd: '#6BBFAA',
     },
     // 흰색/투명
     white: '#FFFFFF',
@@ -60,9 +74,11 @@ const theme = {
   // 모서리
   radius: {
     card: '16px',
+    cardLg: '20px',
     page: '24px',
     pill: '20px',
     circle: '50%',
+    nav: '12px',
   },
 
   // 그림자
@@ -77,7 +93,7 @@ const theme = {
     mobileBaseWidth: '393px',   // 디자인 기준 (iPhone 14 Pro)
     mobileMaxWidth: '480px',    // 데스크탑에서도 이 폭으로 제한
     pagePaddingX: '26px',       // 페이지 좌우 패딩
-    bottomNavHeight: '88px',    // 하단 네비 공간 (padding-bottom 용)
+    bottomNavHeight: '100px',   // 하단 네비(56px) + bottom 26px + 여유
   },
 
   // 배경 그라데이션 (GlobalStyle과 동일)

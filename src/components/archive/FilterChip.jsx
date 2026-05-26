@@ -28,16 +28,16 @@ const Chip = styled.button`
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 32px;
-  padding: 0 12px;
+  height: 35px;
+  padding: 0 14px;
   border-radius: ${({ theme }) => theme.radius.pill};
   border: none;
   cursor: pointer;
   font-family: inherit;
-  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: 600;
   background: ${({ theme, $active }) =>
-    $active ? theme.colors.accent.yellow : theme.colors.white};
+    $active ? 'rgba(255, 240, 102, 0.8)' : theme.colors.white};
   color: ${({ theme, $active }) =>
     $active ? theme.colors.accent.yellowDark : theme.colors.text.ink};
   box-shadow: ${({ theme }) => theme.shadow.cardSoft};

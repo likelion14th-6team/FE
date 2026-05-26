@@ -45,10 +45,11 @@ export default RegretSummaryCard;
 const Card = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: ${({ theme }) => theme.colors.accent.yellow};
-  border-radius: ${({ theme }) => theme.radius.card};
-  padding: 18px 18px 18px 20px;
+  justify-content: space-between;
+  background: ${({ theme }) => theme.colors.accent.pointBox};
+  border-radius: 18px;
+  padding: 16px 18px;
+  gap: 40px;
   box-shadow: ${({ theme }) => theme.shadow.cardSoft};
 `;
 
@@ -56,7 +57,7 @@ const Left = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 15px;
   min-width: 0;
 `;
 
@@ -67,7 +68,7 @@ const Caption = styled.span`
 `;
 
 const Amount = styled.span`
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
   color: ${({ theme }) => theme.colors.text.ink};
   line-height: 1.1;

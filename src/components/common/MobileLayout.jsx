@@ -19,9 +19,10 @@ export default MobileLayout;
 
 const Container = styled.div`
   min-height: 100vh;
+  width: 100%;
   max-width: ${({ theme }) => theme.layout.mobileMaxWidth};
   margin: 0 auto;
-  padding: 0 ${({ theme }) => theme.layout.pagePaddingX};
+  padding: 0 clamp(16px, 5vw, ${({ theme }) => theme.layout.pagePaddingX});
   padding-bottom: ${({ theme, $hasBottomNav }) =>
     $hasBottomNav ? theme.layout.bottomNavHeight : '0'};
   background: transparent;

@@ -53,7 +53,7 @@ const sizeStyles = {
 // 색상 variant별 스타일 묶음
 const variantStyles = {
   primary: css`
-    background: ${({ theme }) => theme.colors.text.brand};
+    background: ${({ theme }) => theme.colors.text.brand2};
     color: ${({ theme }) => theme.colors.white};
     &:hover:not(:disabled) {
       opacity: 0.9;

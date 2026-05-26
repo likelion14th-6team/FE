@@ -1,256 +1,378 @@
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import styled from 'styled-components';
+import MobileLayout from '../components/common/MobileLayout';
+import Header from '../components/common/Header';
+import BottomNav from '../components/common/BottomNav';
+import Card from '../components/common/Card';
+import ProgressBar from '../components/common/ProgressBar';
+import Mochi from '../components/common/Mochi';
 
 const CATEGORIES = [
-  { name: '식비', amount: 142000, color: '#ff9b6c' },
-  { name: '카페', amount: 56000, color: '#9b8c75' },
-  { name: '교통', amount: 38000, color: '#7eaad8' },
-  { name: '문화', amount: 56000, color: '#d8a8c8' },
-  { name: '쇼핑', amount: 50000, color: '#a8d8b0' },
+  { label: '식비', pct: 40, color: '#F4A97F' },
+  { label: '교통', pct: 25, color: '#7BB8D4' },
+  { label: '쇼핑', pct: 20, color: '#C49BD4' },
+  { label: '문화', pct: 15, color: '#F0C96A' },
+];
+
+const SATISFACTION_ROWS = [
+  { label: '식비', pct: 60, color: '#F4A97F' },
+  { label: '문화', pct: 60, color: '#7BB8D4' },
+  { label: '쇼핑', pct: 60, color: '#C49BD4' },
+  { label: '기타', pct: 60, color: '#B0B8B4' },
+];
+
+const TIME_BARS = [
+  { label: '오전', h: 22 },
+  { label: '오후', h: 30 },
+  { label: '밤', h: 48 },
+  { label: '새벽', h: 56 },
 ];
 
 function Report() {
-  const navigate = useNavigate();
-  const monthTotal = 342000;
-  const monthBudget = 500000;
-  const ratio = Math.min(100, Math.round((monthTotal / monthBudget) * 100));
-  const max = Math.max(...CATEGORIES.map((c) => c.amount));
+  const [monthLabel] = useState('2026년 4월');
+  const budget = 1000000;
+  const spent = 842300;
+  const ratio = Math.round((spent / budget) * 100);
 
   return (
-    <Page>
-      <TopBar>
-        <BackButton onClick={() => navigate(-1)}>←</BackButton>
-      </TopBar>
-      <PageHeader>
-        <h1>리포트</h1>
-        <p>2026년 5월</p>
-      </PageHeader>
+    <MobileLayout>
+      <Header title="월간 후회 리포트" />
 
-      <SummaryCard>
-        <SummaryTop>
-          <SummaryLabel>이번 달 소비</SummaryLabel>
-          <SummaryAmount>{monthTotal.toLocaleString()}원</SummaryAmount>
-        </SummaryTop>
-        <ProgressBar>
-          <ProgressFill $ratio={ratio} />
-        </ProgressBar>
-        <SummaryBottom>
-          <span>예산 {monthBudget.toLocaleString()}원</span>
-          <span>{ratio}% 사용</span>
-        </SummaryBottom>
-      </SummaryCard>
+      <Body>
+        <MonthPicker>
+          <PickerBtn type="button" aria-label="이전 달">‹</PickerBtn>
+          <span>{monthLabel}</span>
+          <PickerBtn type="button" aria-label="다음 달">›</PickerBtn>
+        </MonthPicker>
 
-      <ChartCard>
-        <ChartTitle>카테고리별 소비</ChartTitle>
-        <BarList>
-          {CATEGORIES.map((c) => (
-            <BarRow key={c.name}>
-              <BarLabel>{c.name}</BarLabel>
-              <BarTrack>
-                <BarFill $width={(c.amount / max) * 100} $color={c.color} />
-              </BarTrack>
-              <BarAmount>{c.amount.toLocaleString()}원</BarAmount>
-            </BarRow>
-          ))}
-        </BarList>
-      </ChartCard>
+        <Card as="section">
+          <CardPad>
+            <Muted>총 예산 ₩ 1,000,000 중 이번 달 소비 총액</Muted>
+            <BigAmount>₩ {spent.toLocaleString('ko-KR')}</BigAmount>
+            <ProgressBar ratio={ratio} />
+          </CardPad>
+        </Card>
 
-      <InsightCard>
-        <ChartTitle>인사이트</ChartTitle>
-        <InsightText>
-          이번 달은 <strong>식비</strong>에 가장 많이 소비했어요.
-          지난 달 대비 <strong>12% 감소</strong>했습니다 👍
-        </InsightText>
-      </InsightCard>
+        <Card as="section">
+          <CardPad>
+            <SectionTitle>카테고리별 소비</SectionTitle>
+            <CategoryRow>
+              <Donut aria-hidden>◐</Donut>
+              <Legend>
+                {CATEGORIES.map((c) => (
+                  <LegendItem key={c.label}>
+                    <Dot $color={c.color} />
+                    {c.label} {c.pct}%
+                  </LegendItem>
+                ))}
+              </Legend>
+            </CategoryRow>
+          </CardPad>
+        </Card>
 
-      <BottomNav>
-        <NavButton onClick={() => navigate('/archive')}>아카이브</NavButton>
-        <NavButton onClick={() => navigate('/register')}>등록</NavButton>
-        <NavButton $active onClick={() => navigate('/report')}>리포트</NavButton>
-        <NavButton onClick={() => navigate('/mypage')}>마이</NavButton>
-      </BottomNav>
-    </Page>
+        <Card as="section">
+          <CardPad>
+            <SectionTitle>전월 대비 증감</SectionTitle>
+            <BarCompare>
+              <Bar $h={38} $muted />
+              <Bar $h={54} />
+            </BarCompare>
+            <BarLabels>
+              <span>3월</span>
+              <span>4월</span>
+            </BarLabels>
+          </CardPad>
+        </Card>
+
+        <Card as="section">
+          <CardPad>
+            <SectionTitle>시간대별 만족도</SectionTitle>
+            <TimeChart>
+              {TIME_BARS.map((t) => (
+                <TimeCol key={t.label}>
+                  <TimeBar $h={t.h} />
+                  <TimeLabel>{t.label}</TimeLabel>
+                </TimeCol>
+              ))}
+            </TimeChart>
+          </CardPad>
+        </Card>
+
+        <Card as="section">
+          <CardPad>
+            <SectionTitle>카테고리별 만족도</SectionTitle>
+            <SatList>
+              {SATISFACTION_ROWS.map((row) => (
+                <SatRow key={row.label}>
+                  <SatName>{row.label}</SatName>
+                  <SatTrack>
+                    <SatFill $pct={row.pct} $color={row.color} />
+                  </SatTrack>
+                  <SatPct>{row.pct}%</SatPct>
+                </SatRow>
+              ))}
+            </SatList>
+          </CardPad>
+        </Card>
+
+        <AiCard>
+          <AiTitle>AI 한줄평</AiTitle>
+          <AiText>
+            새벽 충동 쇼핑이 후회로 이어졌어요.
+            <br />
+            식비는 만족도가 꾸준히 높네요!
+          </AiText>
+        </AiCard>
+
+        <Card as="section">
+          <TipRow>
+            <Mochi expression="report" />
+            <TipText>
+              <SectionTitle>다음 달에는 이렇게 해 보세요!</SectionTitle>
+              <TipList>
+                <li>새벽 쇼핑 알림 설정</li>
+                <li>식비 예산 -20% 조정</li>
+              </TipList>
+            </TipText>
+          </TipRow>
+        </Card>
+      </Body>
+
+      <BottomNav />
+    </MobileLayout>
   );
 }
 
 export default Report;
 
-const Page = styled.div`
-  min-height: 100vh;
-  padding: 0 16px;
-  max-width: 393px;
-  margin: 0 auto;
-  padding-bottom: 88px;
-`;
-
-const PageHeader = styled.header`
-  padding: 32px 0 16px;
-  h1 { font-family: 'GeekbleMalang', sans-serif; font-weight: 800; font-size: 28px; color: #0f131c; }
-  p { color: rgba(15, 19, 28, 0.5); font-weight: 300; margin-top: 6px; }
-`;
-
-const BottomNav = styled.nav`
-  position: fixed;
-  bottom: 33px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(393px - 52px);
-  background: #fff;
+const Body = styled.div`
   display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding: 10px 4px;
-  border-radius: 20px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 16px;
 `;
 
-const NavButton = styled.button`
-  flex: 1;
-  background: none;
-  border: none;
-  padding: 4px 8px;
-  font-family: inherit;
-  font-weight: ${({ $active }) => ($active ? '700' : '500')};
-  color: ${({ $active }) => ($active ? '#0f131c' : 'rgba(15,19,28,0.65)')};
-  cursor: pointer;
-  font-size: 10px;
-`;
-
-const BackButton = styled.button`
+const MonthPicker = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: rgba(255, 255, 255, 0.6);
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 18px;
-  color: #0f131c;
-  &:hover { background: rgba(255, 255, 255, 0.85); }
-`;
-
-const TopBar = styled.div`
-  padding-top: 16px;
-  padding-bottom: 4px;
-`;
-
-const SummaryCard = styled.section`
-  background: #0f131c;
-  color: #fff;
-  padding: 26px;
-  border-radius: 16px;
-  margin-bottom: 16px;
-`;
-
-const SummaryTop = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 16px;
-`;
-
-const SummaryLabel = styled.span`
-  font-weight: 300;
-  opacity: 0.8;
-  font-size: 14px;
-`;
-
-const SummaryAmount = styled.span`
-  font-family: 'GeekbleMalang', sans-serif;
-  font-weight: 800;
-  font-size: 28px;
-`;
-
-const ProgressBar = styled.div`
-  width: 100%;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
-  overflow: hidden;
-`;
-
-const ProgressFill = styled.div`
-  height: 100%;
-  width: ${({ $ratio }) => $ratio}%;
-  background: #ACDAC1;
-  border-radius: 4px;
-`;
-
-const SummaryBottom = styled.div`
-  display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
-  font-size: 12px;
-  font-weight: 300;
-  opacity: 0.7;
-`;
-
-const ChartCard = styled.section`
-  background: #fff;
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-`;
-
-const InsightCard = styled(ChartCard)``;
-
-const ChartTitle = styled.h2`
-  font-family: 'GeekbleMalang', sans-serif;
+  gap: 80px;
+  height: 44px;
+  background: ${({ theme }) => theme.colors.whiteAlpha60};
+  border-radius: 100px;
+  font-size: ${({ theme }) => theme.fontSizes.lg};
   font-weight: 700;
-  font-size: 16px;
-  color: #0f131c;
-  margin-bottom: 16px;
 `;
 
-const BarList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
+const PickerBtn = styled.button`
+  border: none;
+  background: none;
+  font-size: 24px;
+  cursor: pointer;
+  font-family: inherit;
+  color: ${({ theme }) => theme.colors.text.ink};
+`;
+
+const CardPad = styled.div`
+  padding: 16px 20px;
+`;
+
+const Muted = styled.p`
+  margin: 0 0 4px;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.text.gray};
+`;
+
+const BigAmount = styled.p`
+  margin: 0 0 12px;
+  font-size: 24px;
+  font-weight: 800;
+`;
+
+const SectionTitle = styled.h2`
+  margin: 0 0 16px;
+  font-size: ${({ theme }) => theme.fontSizes.base};
+  font-weight: 700;
+`;
+
+const CategoryRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 24px;
+`;
+
+const Donut = styled.div`
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: conic-gradient(
+    #f4a97f 0 40%,
+    #7bb8d4 40% 65%,
+    #c49bd4 65% 85%,
+    #f0c96a 85% 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: transparent;
+`;
+
+const Legend = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 `;
 
-const BarRow = styled.li`
-  display: grid;
-  grid-template-columns: 52px 1fr 88px;
+const LegendItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+`;
+
+const Dot = styled.span`
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: ${({ $color }) => $color};
+`;
+
+const BarCompare = styled.div`
+  display: flex;
+  align-items: flex-end;
+  gap: 17px;
+  height: 54px;
+`;
+
+const Bar = styled.div`
+  width: 142px;
+  height: ${({ $h }) => $h}px;
+  border-radius: 8px;
+  background: ${({ theme, $muted }) =>
+    $muted ? theme.colors.mint.light : theme.colors.nav.fill};
+  box-shadow: ${({ $muted }) => ($muted ? 'none' : '0 0 2px rgba(206,236,196,0.6)')};
+`;
+
+const BarLabels = styled.div`
+  display: flex;
+  justify-content: space-around;
+  margin-top: 8px;
+  font-size: 10px;
+  color: ${({ theme }) => theme.colors.text.gray};
+`;
+
+const TimeChart = styled.div`
+  display: flex;
+  gap: 32px;
+  align-items: flex-end;
+`;
+
+const TimeCol = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+`;
+
+const TimeBar = styled.div`
+  width: 100%;
+  height: ${({ $h }) => $h}px;
+  border-radius: 4px;
+  background: ${({ theme, $h }) => {
+    if ($h >= 56) return theme.colors.nav.fill;
+    if ($h >= 48) return theme.colors.mint.dark;
+    if ($h >= 30) return theme.colors.mint.mid;
+    return theme.colors.mint.light;
+  }};
+`;
+
+const TimeLabel = styled.span`
+  font-size: 10px;
+  color: ${({ theme }) => theme.colors.text.gray};
+`;
+
+const SatList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+const SatRow = styled.div`
+  display: flex;
   align-items: center;
   gap: 8px;
 `;
 
-const BarLabel = styled.span`
-  font-weight: 500;
-  font-size: 13px;
-  color: #444;
+const SatName = styled.span`
+  width: 36px;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  flex-shrink: 0;
 `;
 
-const BarTrack = styled.div`
+const SatTrack = styled.div`
+  flex: 1;
   height: 10px;
-  background: #f0f0f0;
-  border-radius: 5px;
+  border-radius: 100px;
+  background: ${({ theme }) => theme.colors.progress.track};
   overflow: hidden;
 `;
 
-const BarFill = styled.div`
+const SatFill = styled.div`
   height: 100%;
-  width: ${({ $width }) => $width}%;
+  width: ${({ $pct }) => $pct}%;
   background: ${({ $color }) => $color};
-  border-radius: 5px;
+  border-radius: 100px;
 `;
 
-const BarAmount = styled.span`
+const SatPct = styled.span`
+  width: 36px;
   text-align: right;
-  font-weight: 700;
-  font-size: 12px;
-  color: #0f131c;
+  font-size: ${({ theme }) => theme.fontSizes.xs};
+  color: ${({ theme }) => theme.colors.text.gray};
 `;
 
-const InsightText = styled.p`
-  line-height: 1.7;
-  color: #555;
-  font-weight: 300;
-  strong { font-weight: 700; color: #0f131c; }
+const AiCard = styled.div`
+  background: ${({ theme }) => theme.colors.accent.pointBox};
+  border-radius: ${({ theme }) => theme.radius.cardLg};
+  padding: 16px 20px;
+`;
+
+const AiTitle = styled.h3`
+  margin: 0 0 12px;
+  font-size: ${({ theme }) => theme.fontSizes.base};
+  color: ${({ theme }) => theme.colors.accent.yellowDark};
+`;
+
+const AiText = styled.p`
+  margin: 0;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  line-height: 1.5;
+`;
+
+const TipRow = styled.div`
+  display: flex;
+  gap: 16px;
+  padding: 16px 20px;
+  align-items: flex-start;
+`;
+
+const TipText = styled.div`
+  flex: 1;
+
+  ${SectionTitle} {
+    margin-bottom: 12px;
+  }
+`;
+
+const TipList = styled.ul`
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.text.gray};
 `;

@@ -54,19 +54,19 @@ const Container = styled.div`
 
 const Tab = styled.button`
   flex: 1;
-  height: 40px;
+  height: 50px;
   border: none;
-  border-radius: 12px;
+  border-radius: ${({ $active }) => ($active ? '16px' : '12px')};
   cursor: pointer;
   font-family: inherit;
-  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-size: ${({ theme }) => theme.fontSizes.lg};
   font-weight: 700;
   background: ${({ theme, $active }) =>
     $active ? theme.colors.white : 'transparent'};
   color: ${({ theme, $active, $activeColor }) =>
     $active
       ? $activeColor ?? theme.colors.text.ink
-      : theme.colors.text.secondary};
+      : theme.colors.text.ink};
   box-shadow: ${({ theme, $active }) =>
     $active ? theme.shadow.cardSoft : 'none'};
   transition: background 0.15s, color 0.15s;

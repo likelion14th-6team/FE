@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { ChevronDown } from "lucide-react";
 
 /**
  * 드롭다운 칩. "2026.05 ▾" / "전체 ▾" / "최신순 ▾" 등.
@@ -17,7 +18,7 @@ function FilterChip({ label, active = false, hasArrow = true, onClick }) {
   return (
     <Chip $active={active} onClick={onClick} type="button">
       <span>{label}</span>
-      {hasArrow && <Arrow>▾</Arrow>}
+      {hasArrow && <ArrowIcon size={14} strokeWidth={2.5} />}
     </Chip>
   );
 }
@@ -48,7 +49,6 @@ const Chip = styled.button`
   }
 `;
 
-const Arrow = styled.span`
-  font-size: 10px;
-  line-height: 1;
+const ArrowIcon = styled(ChevronDown)`
+  flex-shrink: 0;
 `;

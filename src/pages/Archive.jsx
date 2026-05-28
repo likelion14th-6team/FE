@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import styled from 'styled-components';
+import { Search } from 'lucide-react';
 
 import MobileLayout from '../components/common/MobileLayout';
 import Header from '../components/common/Header';
@@ -143,7 +144,7 @@ function Archive() {
         title="아카이브"
         rightSlot={
           <SearchButton type="button" aria-label="검색">
-            🔍
+            <Search size={18} strokeWidth={2} />
           </SearchButton>
         }
       />

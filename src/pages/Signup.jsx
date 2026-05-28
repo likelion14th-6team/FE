@@ -6,11 +6,28 @@ import Button from '../components/common/Button';
 import Mochi from '../components/common/Mochi';
 import AuthField from '../components/auth/AuthField';
 import Header from '../components/common/Header';
+import { useSignup, useLogin } from '../hooks/useAuth';
+import { useCreateBudget } from '../hooks/useBudgets';
 
 const AGE_OPTIONS = ['10대', '20대', '30대', '40대', '50대+'];
 
+// 폼 값 → 백엔드 enum 매핑
+const GENDER_MAP = { male: 'MALE', female: 'FEMALE' };
+const AGE_MAP = {
+  '10대': '10s',
+  '20대': '20s',
+  '30대': '30s',
+  '40대': '40s',
+  '50대+': '50s',
+};
+
 function Signup() {
   const navigate = useNavigate();
+  const signup = useSignup();
+  const login = useLogin();
+  const createBudget = useCreateBudget();
+  const isPending = signup.isPending || login.isPending || createBudget.isPending;
+
   const [form, setForm] = useState({
     name: '',
     username: '',
@@ -33,7 +50,7 @@ function Signup() {
       [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value,
     }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (form.password !== form.passwordConfirm) {
       alert('비밀번호가 일치하지 않습니다.');
@@ -43,7 +60,45 @@ function Signup() {
       alert('필수 약관에 동의해주세요.');
       return;
     }
-    navigate('/login');
+
+    try {
+      // 1) 회원가입
+      await signup.mutateAsync({
+        username: form.username,
+        password: form.password,
+        name: form.name,
+        nickname: form.nickname,
+        email: form.email,
+        phone: form.phone || undefined,
+        gender: GENDER_MAP[form.gender],
+        ageGroup: AGE_MAP[form.ageGroup],
+      });
+
+      // 2) 자동 로그인 (예산 생성 시 토큰 필요)
+      await login.mutateAsync({
+        username: form.username,
+        password: form.password,
+      });
+
+      // 3) 입력한 월 예산이 있으면 이번 달 예산으로 생성
+      const budgetAmount = Number(String(form.budget).replace(/[^0-9]/g, ''));
+      if (budgetAmount > 0) {
+        const now = new Date();
+        const targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        await createBudget.mutateAsync({
+          targetMonth,
+          targetAmount: budgetAmount,
+        });
+      }
+
+      navigate('/');
+    } catch (err) {
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        '가입에 실패했습니다. 다시 시도해주세요.';
+      alert('가입 실패: ' + msg);
+    }
   };
 
   return (
@@ -117,8 +172,8 @@ function Signup() {
             </CheckRow>
           </Terms>
 
-          <Button type="submit" size="lg" fullWidth>
-            가입 완료
+          <Button type="submit" size="lg" fullWidth disabled={isPending}>
+            {isPending ? '처리 중...' : '가입 완료'}
           </Button>
         </Form>
       </Page>

@@ -57,11 +57,14 @@ const Input = styled.input`
   border: none;
   outline: none;
   background: transparent;
-  font-family: inherit;
+  /* GeekbleMalang은 password 마스킹(•) 글리프가 없어서 시스템 폰트로 fallback.
+     별점 ★도 같은 이슈로 시스템 폰트로 처리했음. */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   font-size: ${({ theme }) => theme.fontSizes.base};
   color: ${({ theme }) => theme.colors.text.ink};
 
   &::placeholder {
     color: ${({ theme }) => theme.colors.text.gray};
+    font-family: inherit;
   }
 `;

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
+import { Check } from 'lucide-react';
 import FilterChip from './FilterChip';
 
 /**
@@ -75,7 +76,7 @@ function FilterDropdown({ value, onChange, options, active, defaultLabel, label 
               type="button"
             >
               {opt.label}
-              {opt.value === value && <Check>✓</Check>}
+              {opt.value === value && <CheckIcon size={14} strokeWidth={2.5} />}
             </MenuItem>
           ))}
         </Menu>
@@ -130,7 +131,7 @@ const MenuItem = styled.button`
   }
 `;
 
-const Check = styled.span`
-  font-size: 11px;
+const CheckIcon = styled(Check)`
   color: ${({ theme }) => theme.colors.text.brand};
+  flex-shrink: 0;
 `;

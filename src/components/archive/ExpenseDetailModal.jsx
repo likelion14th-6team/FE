@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { NotebookPen } from 'lucide-react';
 
 import Modal from '../common/Modal';
 import Button from '../common/Button';
@@ -69,7 +70,10 @@ function ExpenseDetailModal({ expense, onClose }) {
 
       {expense.memo && (
         <MemoSection>
-          <MemoLabel>📝 메모</MemoLabel>
+          <MemoLabel>
+            <NotebookPen size={14} strokeWidth={2.2} />
+            메모
+          </MemoLabel>
           <MemoText>{expense.memo}</MemoText>
         </MemoSection>
       )}
@@ -168,6 +172,9 @@ const MemoSection = styled.div`
 `;
 
 const MemoLabel = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: ${({ theme }) => theme.fontSizes.xs};
   font-weight: 600;
   color: ${({ theme }) => theme.colors.text.brand};

@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import styled from 'styled-components';
+import { useEffect, useState } from "react";
+import styled from "styled-components";
 
-import Modal from '../common/Modal';
-import Button from '../common/Button';
+import Modal from "../common/Modal";
+import Button from "../common/Button";
 
 /**
  * 비밀번호 변경 모달. 현재/새/새 확인 3 입력.
@@ -18,32 +18,32 @@ import Button from '../common/Button';
 const PW_REGEX = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!-/:-@[-`{-~]).{8,}$/;
 
 function PasswordEditModal({ open, onClose, onSubmit }) {
-  const [current, setCurrent] = useState('');
-  const [next, setNext] = useState('');
-  const [confirm, setConfirm] = useState('');
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [touched, setTouched] = useState({});
 
   useEffect(() => {
     if (open) {
-      setCurrent('');
-      setNext('');
-      setConfirm('');
+      setCurrent("");
+      setNext("");
+      setConfirm("");
       setTouched({});
     }
   }, [open]);
 
   const errors = {
-    current: touched.current && !current ? '현재 비밀번호를 입력해주세요' : null,
+    current:
+      touched.current && !current ? "현재 비밀번호를 입력해주세요" : null,
     next:
       touched.next && !PW_REGEX.test(next)
-        ? '영문/숫자/특수문자 포함 8자 이상'
+        ? "영문/숫자/특수문자 포함 8자 이상"
         : null,
     confirm:
-      touched.confirm && next !== confirm ? '비밀번호가 일치하지 않아요' : null,
+      touched.confirm && next !== confirm ? "비밀번호가 일치하지 않아요" : null,
   };
 
-  const canSubmit =
-    current && PW_REGEX.test(next) && next === confirm;
+  const canSubmit = current && PW_REGEX.test(next) && next === confirm;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -54,7 +54,12 @@ function PasswordEditModal({ open, onClose, onSubmit }) {
   };
 
   return (
-    <Modal open={open} onClose={onClose} variant="center" ariaLabel="비밀번호 변경">
+    <Modal
+      open={open}
+      onClose={onClose}
+      variant="center"
+      ariaLabel="비밀번호 변경"
+    >
       <Form onSubmit={handleSubmit}>
         <Title>비밀번호 변경</Title>
 
@@ -102,7 +107,13 @@ function PasswordEditModal({ open, onClose, onSubmit }) {
         </Field>
 
         <Footer>
-          <Button variant="secondary" size="md" fullWidth onClick={onClose} type="button">
+          <Button
+            variant="secondary"
+            size="md"
+            fullWidth
+            onClick={onClose}
+            type="button"
+          >
             취소
           </Button>
           <Button
@@ -156,7 +167,7 @@ const InputWrap = styled.div`
   height: 44px;
   border: 1.5px solid
     ${({ theme, $error }) =>
-      $error ? theme.colors.danger : 'rgba(0, 0, 0, 0.08)'};
+      $error ? theme.colors.danger : "rgba(0, 0, 0, 0.08)"};
   border-radius: 12px;
   background: ${({ theme }) => theme.colors.mint.light};
 
@@ -176,6 +187,11 @@ const Input = styled.input`
   color: ${({ theme }) => theme.colors.text.ink};
   font-weight: 600;
   min-width: 0;
+
+  &[type="password"] {
+    font-family:
+      -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  }
 
   &::placeholder {
     color: ${({ theme }) => theme.colors.text.secondary};

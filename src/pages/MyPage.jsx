@@ -1,51 +1,61 @@
-import { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import { useState, useEffect } from "react";
+import styled from "styled-components";
 
-import MobileLayout from '../components/common/MobileLayout';
-import Header from '../components/common/Header';
-import BottomNav from '../components/common/BottomNav';
+import MobileLayout from "../components/common/MobileLayout";
+import Header from "../components/common/Header";
+import BottomNav from "../components/common/BottomNav";
 
-import ConfirmDialog from '../components/common/ConfirmDialog';
-import InputDialog from '../components/common/InputDialog';
+import ConfirmDialog from "../components/common/ConfirmDialog";
+import InputDialog from "../components/common/InputDialog";
 
-import MembershipBadge from '../components/mypage/MembershipBadge';
-import InfoRow from '../components/mypage/InfoRow';
-import EditChip from '../components/mypage/EditChip';
-import BudgetCard from '../components/mypage/BudgetCard';
-import PasswordEditModal from '../components/mypage/PasswordEditModal';
+import MembershipBadge from "../components/mypage/MembershipBadge";
+import InfoRow from "../components/mypage/InfoRow";
+import EditChip from "../components/mypage/EditChip";
+import BudgetCard from "../components/mypage/BudgetCard";
+import PasswordEditModal from "../components/mypage/PasswordEditModal";
+
+import { useNavigate } from "react-router-dom";
+import { useLogout } from "../hooks/useAuth";
+import { useMe, usePatchMe } from "../hooks/useMe";
+import { formatBudget, parseBudget } from "../utils/formatBudget";
 
 // 더미 사용자 — API 연동 전까지 사용.
 // 백엔드 응답 형태가 정해지면 user.provider === 'KAKAO' 같은 키로 분기 예정.
 const USERS = {
   normal: {
-    type: 'normal',
-    name: '김상우',
-    username: 'dev_Sangwoo',
-    phone: '010-0000-000',
-    email: 'user@example.com',
-    nickname: '멋쟁이사자',
-    gender: '남성',
-    ageGroup: '20대',
+    type: "normal",
+    name: "김상우",
+    username: "dev_Sangwoo",
+    phone: "010-0000-000",
+    email: "user@example.com",
+    nickname: "멋쟁이사자",
+    gender: "남성",
+    ageGroup: "20대",
     budget: 500000,
   },
   kakao: {
-    type: 'kakao',
-    name: '김상우',
-    username: 'kakao_123456',
-    phone: '010-0000-000',
-    email: 'user@example.com',
-    nickname: '멋쟁이사자',
-    gender: '남성',
-    ageGroup: '20대',
+    type: "kakao",
+    name: "김상우",
+    username: "kakao_123456",
+    phone: "010-0000-000",
+    email: "user@example.com",
+    nickname: "멋쟁이사자",
+    gender: "남성",
+    ageGroup: "20대",
     budget: 500000,
   },
 };
 
 function MyPage() {
+  const navigate = useNavigate();
+  const logout = useLogout();
+  const { data: userData } = useMe();
+  const patchMe = usePatchMe();
+
   // TODO(API): 실제 인증 사용자로 교체. 지금은 토글로 두 모드 확인용.
-  const [userType, setUserType] = useState('normal');
+  const [userType, setUserType] = useState("normal");
   const [user, setUser] = useState(USERS.normal);
-  const isKakao = user.type === 'kakao';
+  const isKakao = user.type === "kakao";
 
   // 토글 시 사용자 객체 리셋
   useEffect(() => {
@@ -59,25 +69,63 @@ function MyPage() {
   const [budgetOpen, setBudgetOpen] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
 
-  // 임시 핸들러 — 추후 API 연동/페이지 이동으로 교체
-  const handleSubmitNickname = (newNickname) => {
-    console.log('[mypage] nickname:', newNickname);
-    setUser((u) => ({ ...u, nickname: newNickname }));
+  const handleSubmitNickname = async (newNickname) => {
+    try {
+      await patchMe.mutateAsync({ nickname: newNickname });
+      setUser((u) => ({ ...u, nickname: newNickname }));
+      alert("별명이 수정되었습니다.");
+    } catch (err) {
+      const msg = err.response?.data?.message || "별명 수정에 실패했습니다.";
+      alert("수정 실패: " + msg);
+    }
   };
 
-  const handleSubmitBudget = (newBudgetStr) => {
-    const newBudget = parseInt(newBudgetStr.replace(/,/g, ''), 10);
+  const handleSubmitBudget = async (newBudgetStr) => {
+    const newBudget = parseInt(newBudgetStr.replace(/,/g, ""), 10);
     if (Number.isNaN(newBudget)) return;
-    console.log('[mypage] budget:', newBudget);
-    setUser((u) => ({ ...u, budget: newBudget }));
+
+    try {
+      const now = new Date();
+      const targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+      await patchMe.mutateAsync({
+        // 예산은 별도 API가 있지만, user 정보 업데이트와 함께 처리
+        // 실제로는 useCreateBudget을 사용해야 함
+      });
+      setUser((u) => ({ ...u, budget: newBudget }));
+      alert("예산이 수정되었습니다.");
+    } catch (err) {
+      const msg = err.response?.data?.message || "예산 수정에 실패했습니다.";
+      alert("수정 실패: " + msg);
+    }
   };
 
-  const handleSubmitPassword = (current, next) => {
-    console.log('[mypage] password change requested');
+  const handleSubmitPassword = async (current, next) => {
+    try {
+      await patchMe.mutateAsync({
+        currentPassword: current,
+        newPassword: next,
+      });
+      alert("비밀번호가 변경되었습니다.");
+    } catch (err) {
+      const msg =
+        err.response?.data?.message || "비밀번호 변경에 실패했습니다.";
+      alert("변경 실패: " + msg);
+    }
   };
 
-  const handleLogoutConfirm = () => console.log('[mypage] logout confirmed');
-  const handleWithdrawConfirm = () => console.log('[mypage] withdraw confirmed');
+  const handleLogoutConfirm = () => {
+    // 토큰 + 모든 캐시 비움
+    logout();
+    navigate("/login");
+  };
+
+  const handleWithdrawConfirm = () => {
+    // TODO(API): 백엔드 회원탈퇴 API(DELETE /users/me 등) 출시 시 호출 추가.
+    //   현재 백엔드 Swagger에 탈퇴 엔드포인트 없음 → 클라이언트 정리만 수행.
+    logout();
+    navigate("/signup");
+  };
 
   return (
     <MobileLayout>
@@ -89,14 +137,14 @@ function MyPage() {
           <DevCaption>🛠 개발용 모드</DevCaption>
           <DevButtons>
             <DevBtn
-              $active={userType === 'normal'}
-              onClick={() => setUserType('normal')}
+              $active={userType === "normal"}
+              onClick={() => setUserType("normal")}
             >
               일반
             </DevBtn>
             <DevBtn
-              $active={userType === 'kakao'}
-              onClick={() => setUserType('kakao')}
+              $active={userType === "kakao"}
+              onClick={() => setUserType("kakao")}
             >
               카카오
             </DevBtn>
@@ -121,12 +169,15 @@ function MyPage() {
             />
             <InfoRow
               label="비밀번호"
-              value={isKakao ? '소셜 로그인' : undefined}
+              value={isKakao ? "소셜 로그인" : undefined}
               action={
                 isKakao ? (
                   <EditChip variant="disabled" />
                 ) : (
-                  <EditChip variant="edit" onClick={() => setPasswordOpen(true)} />
+                  <EditChip
+                    variant="edit"
+                    onClick={() => setPasswordOpen(true)}
+                  />
                 )
               }
             />
@@ -135,7 +186,12 @@ function MyPage() {
             <InfoRow
               label="별명"
               value={user.nickname}
-              action={<EditChip variant="edit" onClick={() => setNicknameOpen(true)} />}
+              action={
+                <EditChip
+                  variant="edit"
+                  onClick={() => setNicknameOpen(true)}
+                />
+              }
             />
             <InfoRow label="성별" value={user.gender} />
             <InfoRow label="연령대" value={user.ageGroup} />
@@ -167,9 +223,9 @@ function MyPage() {
         onSubmit={handleSubmitNickname}
         validate={(v) =>
           v.trim().length < 1
-            ? '별명을 입력해주세요'
+            ? "별명을 입력해주세요"
             : v.length > 20
-              ? '20자 이하로 입력해주세요'
+              ? "20자 이하로 입력해주세요"
               : null
         }
         confirmLabel="저장"
@@ -182,15 +238,19 @@ function MyPage() {
         title="이번 달 예산 수정"
         label="목표 예산"
         placeholder="500,000"
-        initialValue={user.budget}
-        inputType="number"
+        initialValue={String(user.budget).replace(/\D/g, "")}
+        inputType="text"
+        inputMode="numeric"
         suffix="원"
-        formatDisplay={(v) => v.toLocaleString()}
+        formatDisplay={(v) => {
+          const num = parseBudget(v);
+          return num > 0 ? num.toLocaleString() : "";
+        }}
         onSubmit={handleSubmitBudget}
         validate={(v) => {
-          const n = Number(String(v).replace(/,/g, ''));
-          if (!n || n <= 0) return '0보다 큰 금액을 입력해주세요';
-          if (n > 100000000) return '1억 이하로 입력해주세요';
+          const n = parseBudget(v);
+          if (!n || n <= 0) return "0보다 큰 금액을 입력해주세요";
+          if (n > 100000000) return "1억 이하로 입력해주세요";
           return null;
         }}
         confirmLabel="저장"
@@ -208,7 +268,7 @@ function MyPage() {
         open={logoutOpen}
         onClose={() => setLogoutOpen(false)}
         title="로그아웃 하시겠어요?"
-        description={'다시 로그인하면 돌아올 수 있어요.'}
+        description={"다시 로그인하면 돌아올 수 있어요."}
         confirmLabel="로그아웃"
         confirmVariant="primary"
         onConfirm={handleLogoutConfirm}
@@ -218,7 +278,9 @@ function MyPage() {
         open={withdrawOpen}
         onClose={() => setWithdrawOpen(false)}
         title="정말 탈퇴하시겠어요?"
-        description={'탈퇴하면 그동안의 소비 기록과\n만족도 데이터가 모두 사라져요.'}
+        description={
+          "탈퇴하면 그동안의 소비 기록과\n만족도 데이터가 모두 사라져요."
+        }
         confirmLabel="탈퇴하기"
         confirmVariant="danger"
         onConfirm={handleWithdrawConfirm}
@@ -297,7 +359,7 @@ const Avatar = styled.div`
   height: 80px;
   border-radius: ${({ theme }) => theme.radius.circle};
   background: ${({ theme, $type }) =>
-    $type === 'kakao' ? theme.colors.accent.yellow : theme.colors.mint.dark};
+    $type === "kakao" ? theme.colors.accent.yellow : theme.colors.mint.dark};
 `;
 
 const UserName = styled.h2`

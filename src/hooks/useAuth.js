@@ -1,7 +1,7 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useSyncExternalStore } from 'react';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useSyncExternalStore } from "react";
 
-import { login as loginApi, signup as signupApi } from '../api/auth';
+import { login as loginApi, signup as signupApi } from "../api/auth";
 
 /**
  * 인증 훅 모음.
@@ -18,8 +18,8 @@ import { login as loginApi, signup as signupApi } from '../api/auth';
  * 추후 AuthContext 도입 시 useAuthState를 Context로 옮길 수 있음.
  */
 
-const TOKEN_KEY = 'token';
-const REFRESH_TOKEN_KEY = 'refreshToken';
+const TOKEN_KEY = "token";
+const REFRESH_TOKEN_KEY = "refreshToken";
 
 /* ===== 토큰 헬퍼 ===== */
 
@@ -28,29 +28,35 @@ export function getToken() {
 }
 
 function setTokens({ accessToken, refreshToken }) {
-  console.log('[setTokens] saving tokens', { accessToken: !!accessToken, refreshToken: !!refreshToken });
+  console.log("[setTokens] saving tokens", {
+    accessToken: !!accessToken,
+    refreshToken: !!refreshToken,
+  });
   localStorage.setItem(TOKEN_KEY, accessToken);
   if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   // 같은 탭에서도 useAuthState가 반응하도록 storage 이벤트 발사
-  window.dispatchEvent(new Event('auth-changed'));
-  console.log('[setTokens] done. token in storage:', localStorage.getItem(TOKEN_KEY) ? 'YES' : 'NO');
+  window.dispatchEvent(new Event("auth-changed"));
+  console.log(
+    "[setTokens] done. token in storage:",
+    localStorage.getItem(TOKEN_KEY) ? "YES" : "NO",
+  );
 }
 
 function clearTokens() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
-  window.dispatchEvent(new Event('auth-changed'));
+  window.dispatchEvent(new Event("auth-changed"));
 }
 
 /* ===== useAuthState: 현재 로그인 여부 구독 ===== */
 
 function subscribe(callback) {
   // 다른 탭에서 변경 + 같은 탭의 명시적 이벤트 둘 다 구독
-  window.addEventListener('storage', callback);
-  window.addEventListener('auth-changed', callback);
+  window.addEventListener("storage", callback);
+  window.addEventListener("auth-changed", callback);
   return () => {
-    window.removeEventListener('storage', callback);
-    window.removeEventListener('auth-changed', callback);
+    window.removeEventListener("storage", callback);
+    window.removeEventListener("auth-changed", callback);
   };
 }
 
@@ -79,7 +85,7 @@ export function useLogin() {
   return useMutation({
     mutationFn: loginApi,
     onSuccess: (data) => {
-      console.log('[useLogin] success response:', data);
+      console.log("[useLogin] success response:", data);
       // data = { userId, nickname, accessToken, refreshToken, ... }
       if (data?.accessToken) {
         setTokens({
@@ -87,9 +93,12 @@ export function useLogin() {
           refreshToken: data.refreshToken,
         });
         // 'me' 캐시 무효화 → 다음 사용처에서 새 토큰으로 조회
-        qc.invalidateQueries({ queryKey: ['me'] });
+        qc.invalidateQueries({ queryKey: ["me"] });
       } else {
-        console.warn('[useLogin] accessToken not found in response. data keys:', Object.keys(data || {}));
+        console.warn(
+          "[useLogin] accessToken not found in response. data keys:",
+          Object.keys(data || {}),
+        );
       }
     },
   });

@@ -17,7 +17,7 @@ import PasswordEditModal from "../components/mypage/PasswordEditModal";
 import { useNavigate } from "react-router-dom";
 import { useLogout } from "../hooks/useAuth";
 import { useMe, usePatchMe } from "../hooks/useMe";
-import { formatBudget, parseBudget } from "../utils/formatBudget";
+import { parseBudget } from "../utils/formatBudget";
 
 // 더미 사용자 — API 연동 전까지 사용.
 // 백엔드 응답 형태가 정해지면 user.provider === 'KAKAO' 같은 키로 분기 예정.
@@ -49,7 +49,7 @@ const USERS = {
 function MyPage() {
   const navigate = useNavigate();
   const logout = useLogout();
-  const { data: userData } = useMe();
+  useMe();
   const patchMe = usePatchMe();
 
   // TODO(API): 실제 인증 사용자로 교체. 지금은 토글로 두 모드 확인용.
@@ -85,9 +85,6 @@ function MyPage() {
     if (Number.isNaN(newBudget)) return;
 
     try {
-      const now = new Date();
-      const targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-
       await patchMe.mutateAsync({
         // 예산은 별도 API가 있지만, user 정보 업데이트와 함께 처리
         // 실제로는 useCreateBudget을 사용해야 함

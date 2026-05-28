@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 
 import MobileLayout from '../components/common/MobileLayout';
@@ -6,11 +6,13 @@ import Header from '../components/common/Header';
 import BottomNav from '../components/common/BottomNav';
 
 import ConfirmDialog from '../components/common/ConfirmDialog';
+import InputDialog from '../components/common/InputDialog';
 
 import MembershipBadge from '../components/mypage/MembershipBadge';
 import InfoRow from '../components/mypage/InfoRow';
 import EditChip from '../components/mypage/EditChip';
 import BudgetCard from '../components/mypage/BudgetCard';
+import PasswordEditModal from '../components/mypage/PasswordEditModal';
 
 // 더미 사용자 — API 연동 전까지 사용.
 // 백엔드 응답 형태가 정해지면 user.provider === 'KAKAO' 같은 키로 분기 예정.
@@ -42,16 +44,38 @@ const USERS = {
 function MyPage() {
   // TODO(API): 실제 인증 사용자로 교체. 지금은 토글로 두 모드 확인용.
   const [userType, setUserType] = useState('normal');
-  const user = USERS[userType];
+  const [user, setUser] = useState(USERS.normal);
   const isKakao = user.type === 'kakao';
+
+  // 토글 시 사용자 객체 리셋
+  useEffect(() => {
+    setUser(USERS[userType]);
+  }, [userType]);
 
   // 다이얼로그 오픈 상태
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [nicknameOpen, setNicknameOpen] = useState(false);
+  const [budgetOpen, setBudgetOpen] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
 
   // 임시 핸들러 — 추후 API 연동/페이지 이동으로 교체
-  const handleEdit = (field) => console.log('[mypage] edit', field);
-  const handleEditBudget = () => console.log('[mypage] edit budget');
+  const handleSubmitNickname = (newNickname) => {
+    console.log('[mypage] nickname:', newNickname);
+    setUser((u) => ({ ...u, nickname: newNickname }));
+  };
+
+  const handleSubmitBudget = (newBudgetStr) => {
+    const newBudget = parseInt(newBudgetStr.replace(/,/g, ''), 10);
+    if (Number.isNaN(newBudget)) return;
+    console.log('[mypage] budget:', newBudget);
+    setUser((u) => ({ ...u, budget: newBudget }));
+  };
+
+  const handleSubmitPassword = (current, next) => {
+    console.log('[mypage] password change requested');
+  };
+
   const handleLogoutConfirm = () => console.log('[mypage] logout confirmed');
   const handleWithdrawConfirm = () => console.log('[mypage] withdraw confirmed');
 
@@ -102,7 +126,7 @@ function MyPage() {
                 isKakao ? (
                   <EditChip variant="disabled" />
                 ) : (
-                  <EditChip variant="edit" onClick={() => handleEdit('password')} />
+                  <EditChip variant="edit" onClick={() => setPasswordOpen(true)} />
                 )
               }
             />
@@ -111,7 +135,7 @@ function MyPage() {
             <InfoRow
               label="별명"
               value={user.nickname}
-              action={<EditChip variant="edit" onClick={() => handleEdit('nickname')} />}
+              action={<EditChip variant="edit" onClick={() => setNicknameOpen(true)} />}
             />
             <InfoRow label="성별" value={user.gender} />
             <InfoRow label="연령대" value={user.ageGroup} />
@@ -119,7 +143,7 @@ function MyPage() {
         </ProfileCard>
 
         {/* 예산 */}
-        <BudgetCard amount={user.budget} onEdit={handleEditBudget} />
+        <BudgetCard amount={user.budget} onEdit={() => setBudgetOpen(true)} />
 
         {/* 로그아웃 + 회원 탈퇴 */}
         <LogoutCard type="button" onClick={() => setLogoutOpen(true)}>
@@ -132,6 +156,54 @@ function MyPage() {
 
       <BottomNav />
 
+      {/* 별명 수정 */}
+      <InputDialog
+        open={nicknameOpen}
+        onClose={() => setNicknameOpen(false)}
+        title="별명 수정"
+        label="새 별명"
+        placeholder="멋쟁이사자"
+        initialValue={user.nickname}
+        onSubmit={handleSubmitNickname}
+        validate={(v) =>
+          v.trim().length < 1
+            ? '별명을 입력해주세요'
+            : v.length > 20
+              ? '20자 이하로 입력해주세요'
+              : null
+        }
+        confirmLabel="저장"
+      />
+
+      {/* 예산 수정 */}
+      <InputDialog
+        open={budgetOpen}
+        onClose={() => setBudgetOpen(false)}
+        title="이번 달 예산 수정"
+        label="목표 예산"
+        placeholder="500,000"
+        initialValue={user.budget}
+        inputType="number"
+        suffix="원"
+        formatDisplay={(v) => v.toLocaleString()}
+        onSubmit={handleSubmitBudget}
+        validate={(v) => {
+          const n = Number(String(v).replace(/,/g, ''));
+          if (!n || n <= 0) return '0보다 큰 금액을 입력해주세요';
+          if (n > 100000000) return '1억 이하로 입력해주세요';
+          return null;
+        }}
+        confirmLabel="저장"
+      />
+
+      {/* 비밀번호 변경 */}
+      <PasswordEditModal
+        open={passwordOpen}
+        onClose={() => setPasswordOpen(false)}
+        onSubmit={handleSubmitPassword}
+      />
+
+      {/* 로그아웃 / 탈퇴 확인 */}
       <ConfirmDialog
         open={logoutOpen}
         onClose={() => setLogoutOpen(false)}

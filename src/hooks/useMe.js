@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchMe, patchMe } from '../api/user';
+import { useAuthState } from './useAuth';
 
 /**
  * 현재 로그인 사용자 정보.
@@ -10,12 +11,12 @@ import { fetchMe, patchMe } from '../api/user';
  * - 5분 동안 캐시 (staleTime). 여러 컴포넌트에서 동시 호출해도 한 번만 fetch.
  */
 export function useMe() {
-  const hasToken = !!localStorage.getItem('token');
+  const { isAuthenticated } = useAuthState();
 
   return useQuery({
     queryKey: ['me'],
     queryFn: fetchMe,
-    enabled: hasToken,
+    enabled: isAuthenticated,
     staleTime: 1000 * 60 * 5,
     retry: 1,
   });

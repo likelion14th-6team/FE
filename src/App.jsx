@@ -7,6 +7,7 @@ import GlobalStyle from './styles/GlobalStyle';
 import theme from './styles/theme';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import KakaoCallback from './pages/KakaoCallback';
 import Signup from './pages/Signup';
 import Archive from './pages/Archive';
 import Register from './pages/Register';
@@ -34,6 +35,7 @@ function App() {
           <GlobalStyle />
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
             <Route path="/" element={<Home />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/archive" element={<Archive />} />

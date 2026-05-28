@@ -5,6 +5,7 @@ import MobileLayout from "../components/common/MobileLayout";
 import Button from "../components/common/Button";
 import Mochi from "../components/common/Mochi";
 import AuthField from "../components/auth/AuthField";
+import PhoneNumberInput from "../components/auth/PhoneNumberInput";
 import Header from "../components/common/Header";
 import { useSignup, useLogin, useAuthState } from "../hooks/useAuth";
 import { useCreateBudget } from "../hooks/useBudgets";
@@ -165,14 +166,14 @@ function Signup() {
             placeholder="비밀번호 재입력"
             required
           />
-          <AuthField
-            label="전화번호 *"
-            name="phone"
-            value={form.phone}
-            onChange={set("phone")}
-            placeholder="010-0000-0000"
-            required
-          />
+          <PhoneField>
+            <PhoneLabel>전화번호 *</PhoneLabel>
+            <PhoneNumberInput
+              value={form.phone}
+              onChange={set("phone")}
+              required
+            />
+          </PhoneField>
           <AuthField
             label="이메일 *"
             name="email"
@@ -228,7 +229,7 @@ function Signup() {
             name="budget"
             value={form.budget}
             onChange={set("budget")}
-            placeholder="예: 500,000원"
+            placeholder="예: 500,000"
             required
           />
 
@@ -300,14 +301,27 @@ const Form = styled.form`
 const DupBtn = styled.button`
   flex-shrink: 0;
   border: none;
-  border-radius: 10px;
-  padding: 6px 12px;
+  border-radius: 8px;
+  padding: 8px 14px;
   background: ${({ theme }) => theme.colors.accent.pointBox};
   color: ${({ theme }) => theme.colors.accent.yellowDark};
   font-family: inherit;
-  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-size: ${({ theme }) => theme.fontSizes.xs};
   font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
+`;
+
+const PhoneField = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+`;
+
+const PhoneLabel = styled.span`
+  font-size: ${({ theme }) => theme.fontSizes.lg};
+  color: ${({ theme }) => theme.colors.text.brand2};
 `;
 
 const Row2 = styled.div`

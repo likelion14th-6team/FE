@@ -54,11 +54,18 @@ function Signup() {
     marketing: false,
   });
 
-  const set = (key) => (e) =>
+  const set = (key) => (e) => {
+    let value =
+      e.target.type === "checkbox" ? e.target.checked : e.target.value;
+    if (key === "budget") {
+      const digits = value.replace(/[^0-9]/g, "");
+      value = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
     setForm((prev) => ({
       ...prev,
-      [key]: e.target.type === "checkbox" ? e.target.checked : e.target.value,
+      [key]: value,
     }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();

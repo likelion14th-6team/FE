@@ -101,13 +101,26 @@ const PhoneInput = styled.input`
   outline: none;
   background: transparent;
   font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    GeekbleMalang,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    system-ui,
+    sans-serif;
   font-size: ${({ theme }) => theme.fontSizes.base};
   color: ${({ theme }) => theme.colors.text.ink};
   text-align: center;
+  min-width: 0;
 
   &::placeholder {
     color: ${({ theme }) => theme.colors.text.gray};
+    font-family:
+      GeekbleMalang,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      system-ui,
+      sans-serif;
   }
 
   /* 숫자 입력 필드 스피너 제거 */

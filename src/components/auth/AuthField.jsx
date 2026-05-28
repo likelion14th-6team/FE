@@ -69,7 +69,12 @@ const Input = styled.input`
   &::placeholder {
     color: ${({ theme }) => theme.colors.text.gray};
     font-family:
-      -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      GeekbleMalang,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      system-ui,
+      sans-serif;
   }
 `;
 

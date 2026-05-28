@@ -7,6 +7,7 @@ import Mochi from "../components/common/Mochi";
 import AuthField from "../components/auth/AuthField";
 import AuthDivider from "../components/auth/AuthDivider";
 import { useLogin, useAuthState } from "../hooks/useAuth";
+import { startKakaoLogin } from "../hooks/useKakaoAuth";
 
 function Login() {
   const navigate = useNavigate();
@@ -77,10 +78,7 @@ function Login() {
 
           <AuthDivider />
 
-          <KakaoBtn
-            type="button"
-            onClick={() => alert("카카오 로그인은 준비 중입니다.")}
-          >
+          <KakaoBtn type="button" onClick={startKakaoLogin}>
             카카오톡으로 시작하기
           </KakaoBtn>
         </Form>

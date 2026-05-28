@@ -27,6 +27,19 @@ export function getToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
 
+/**
+ * 로그인/카카오 콜백 등에서 받은 LoginResponseDto 를 저장.
+ * @returns {boolean} accessToken 저장 여부
+ */
+export function saveLoginTokens(data) {
+  if (!data?.accessToken) return false;
+  setTokens({
+    accessToken: data.accessToken,
+    refreshToken: data.refreshToken,
+  });
+  return true;
+}
+
 function setTokens({ accessToken, refreshToken }) {
   console.log("[setTokens] saving tokens", {
     accessToken: !!accessToken,
@@ -86,13 +99,7 @@ export function useLogin() {
     mutationFn: loginApi,
     onSuccess: (data) => {
       console.log("[useLogin] success response:", data);
-      // data = { userId, nickname, accessToken, refreshToken, ... }
-      if (data?.accessToken) {
-        setTokens({
-          accessToken: data.accessToken,
-          refreshToken: data.refreshToken,
-        });
-        // 'me' 캐시 무효화 → 다음 사용처에서 새 토큰으로 조회
+      if (saveLoginTokens(data)) {
         qc.invalidateQueries({ queryKey: ["me"] });
       } else {
         console.warn(

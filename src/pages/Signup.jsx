@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import MobileLayout from "../components/common/MobileLayout";
 import Button from "../components/common/Button";
@@ -24,7 +24,10 @@ const AGE_MAP = {
 
 function Signup() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated } = useAuthState();
+  const fromKakao = location.state?.fromKakao === true;
+  const kakaoProfile = location.state?.kakaoProfile;
   const signup = useSignup();
   const login = useLogin();
   const createBudget = useCreateBudget();
@@ -39,13 +42,13 @@ function Signup() {
   }, [isAuthenticated, navigate]);
 
   const [form, setForm] = useState({
-    name: "",
+    name: kakaoProfile?.name || "",
     username: "",
     password: "",
     passwordConfirm: "",
     phone: "",
-    email: "",
-    nickname: "",
+    email: kakaoProfile?.email || "",
+    nickname: kakaoProfile?.nickname || "",
     gender: "male",
     ageGroup: "20대",
     budget: "",
@@ -53,6 +56,13 @@ function Signup() {
     privacy: false,
     marketing: false,
   });
+
+  useEffect(() => {
+    if (fromKakao) {
+      // 카카오 신규 가입 시 추가 정보 입력 안내 (백엔드 kakao/signup 연동 전)
+      console.info("[signup] 카카오 신규 가입 추가 정보 입력", kakaoProfile);
+    }
+  }, [fromKakao, kakaoProfile]);
 
   const set = (key) => (e) => {
     let value =
@@ -132,7 +142,9 @@ function Signup() {
       <Page>
         <Hero>
           <Mochi expression="excited" size="xl" />
-          <HeroText>함께 시작해요!</HeroText>
+          <HeroText>
+            {fromKakao ? "카카오로 가입 중이에요!" : "함께 시작해요!"}
+          </HeroText>
         </Hero>
 
         <Form onSubmit={handleSubmit}>

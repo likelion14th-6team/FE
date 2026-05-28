@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchBudgets, createBudget } from '../api/budget';
+import { useAuthState } from './useAuth';
 
 /**
  * 예산 목록.
@@ -7,12 +8,12 @@ import { fetchBudgets, createBudget } from '../api/budget';
  * const { data: budgets, isLoading } = useBudgets();
  */
 export function useBudgets() {
-  const hasToken = !!localStorage.getItem('token');
+  const { isAuthenticated } = useAuthState();
 
   return useQuery({
     queryKey: ['budgets'],
     queryFn: fetchBudgets,
-    enabled: hasToken,
+    enabled: isAuthenticated,
     staleTime: 1000 * 60 * 5,
   });
 }

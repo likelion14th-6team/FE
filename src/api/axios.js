@@ -1,9 +1,10 @@
 import axios from "axios";
+import { API_BASE_URL } from "../config/api";
 
 /**
  * 백엔드 API용 axios 인스턴스.
  *
- * - baseURL: http://slog.z0.co.kr/api/v1
+ * - baseURL: REACT_APP_API_URL 또는 REACT_APP_API_BASE_URL (기본 slog.z0.co.kr/api/v1)
  * - 요청 인터셉터: localStorage 토큰 → Authorization 헤더 자동 첨부
  * - 응답 인터셉터: ApiResponse 래퍼({success, code, message, data})를 자동 풀어서
  *   `response.data`에 실제 data만 담음. 사용처에선 그냥 `res.data`로 받으면 됨.
@@ -13,7 +14,7 @@ import axios from "axios";
 const api = axios.create({
   // https로 호출해야 함. http로 보내면 서버가 https로 리다이렉트하면서
   // preflight(OPTIONS) 단계에서 브라우저가 CORS 에러로 차단함.
-  baseURL: "https://slog.z0.co.kr/api/v1",
+  baseURL: API_BASE_URL,
   timeout: 10000,
 });
 

@@ -61,8 +61,8 @@ function Signup() {
       return;
     }
 
+    // 1) 회원가입 + 자동 로그인 (실패 시 여기서 중단)
     try {
-      // 1) 회원가입
       await signup.mutateAsync({
         username: form.username,
         password: form.password,
@@ -73,32 +73,36 @@ function Signup() {
         gender: GENDER_MAP[form.gender],
         ageGroup: AGE_MAP[form.ageGroup],
       });
-
-      // 2) 자동 로그인 (예산 생성 시 토큰 필요)
       await login.mutateAsync({
         username: form.username,
         password: form.password,
       });
-
-      // 3) 입력한 월 예산이 있으면 이번 달 예산으로 생성
-      const budgetAmount = Number(String(form.budget).replace(/[^0-9]/g, ''));
-      if (budgetAmount > 0) {
-        const now = new Date();
-        const targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-        await createBudget.mutateAsync({
-          targetMonth,
-          targetAmount: budgetAmount,
-        });
-      }
-
-      navigate('/');
     } catch (err) {
       const msg =
         err.response?.data?.message ||
         err.message ||
         '가입에 실패했습니다. 다시 시도해주세요.';
       alert('가입 실패: ' + msg);
+      return;
     }
+
+    // 2) 예산 생성 — best-effort. 실패해도 가입은 완료된 것으로 처리.
+    const budgetAmount = Number(String(form.budget).replace(/[^0-9]/g, ''));
+    if (budgetAmount > 0) {
+      const now = new Date();
+      const targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      try {
+        await createBudget.mutateAsync({
+          targetMonth,
+          targetAmount: budgetAmount,
+        });
+      } catch (err) {
+        console.warn('[signup] budget creation failed, but signup OK', err);
+        alert('가입은 완료됐어요. 예산은 마이페이지에서 다시 설정해주세요.');
+      }
+    }
+
+    navigate('/');
   };
 
   return (

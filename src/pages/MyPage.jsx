@@ -14,6 +14,9 @@ import EditChip from '../components/mypage/EditChip';
 import BudgetCard from '../components/mypage/BudgetCard';
 import PasswordEditModal from '../components/mypage/PasswordEditModal';
 
+import { useNavigate } from 'react-router-dom';
+import { useLogout } from '../hooks/useAuth';
+
 // 더미 사용자 — API 연동 전까지 사용.
 // 백엔드 응답 형태가 정해지면 user.provider === 'KAKAO' 같은 키로 분기 예정.
 const USERS = {
@@ -42,6 +45,9 @@ const USERS = {
 };
 
 function MyPage() {
+  const navigate = useNavigate();
+  const logout = useLogout();
+
   // TODO(API): 실제 인증 사용자로 교체. 지금은 토글로 두 모드 확인용.
   const [userType, setUserType] = useState('normal');
   const [user, setUser] = useState(USERS.normal);
@@ -76,8 +82,18 @@ function MyPage() {
     console.log('[mypage] password change requested');
   };
 
-  const handleLogoutConfirm = () => console.log('[mypage] logout confirmed');
-  const handleWithdrawConfirm = () => console.log('[mypage] withdraw confirmed');
+  const handleLogoutConfirm = () => {
+    // 토큰 + 모든 캐시 비움
+    logout();
+    navigate('/login');
+  };
+
+  const handleWithdrawConfirm = () => {
+    // TODO(API): 백엔드 회원탈퇴 API(DELETE /users/me 등) 출시 시 호출 추가.
+    //   현재 백엔드 Swagger에 탈퇴 엔드포인트 없음 → 클라이언트 정리만 수행.
+    logout();
+    navigate('/signup');
+  };
 
   return (
     <MobileLayout>

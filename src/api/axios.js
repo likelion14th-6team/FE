@@ -43,6 +43,17 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    // 진단용 — 콘솔에 상세 에러 출력
+    if (error.response) {
+      console.error('[api error]', error.response.status, {
+        url: error.config?.url,
+        method: error.config?.method,
+        requestBody: error.config?.data,
+        responseBody: error.response.data,
+      });
+    } else {
+      console.error('[api error] no response', error.message);
+    }
     // 401: 토큰 만료/무효 → 로컬 토큰 제거
     if (error.response?.status === 401) {
       localStorage.removeItem('token');

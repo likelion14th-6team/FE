@@ -66,6 +66,15 @@ const Input = styled.input`
   font-size: ${({ theme }) => theme.fontSizes.base};
   color: ${({ theme }) => theme.colors.text.ink};
 
+  &[type="password"] {
+    font-family:
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      system-ui,
+      sans-serif;
+  }
+
   &::placeholder {
     color: ${({ theme }) => theme.colors.text.gray};
     font-family:

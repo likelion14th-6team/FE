@@ -32,6 +32,7 @@ api.interceptors.response.use(
     // 백엔드가 항상 { success, code, message, data } 형태로 반환.
     // data 안의 실제 페이로드만 response.data에 다시 담는다.
     const payload = response.data;
+    console.log('[api response]', response.config.url, payload);
     if (
       payload &&
       typeof payload === 'object' &&

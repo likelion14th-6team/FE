@@ -1,44 +1,53 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
-import MobileLayout from '../components/common/MobileLayout';
-import Button from '../components/common/Button';
-import Mochi from '../components/common/Mochi';
-import AuthField from '../components/auth/AuthField';
-import Header from '../components/common/Header';
-import { useSignup, useLogin } from '../hooks/useAuth';
-import { useCreateBudget } from '../hooks/useBudgets';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
+import MobileLayout from "../components/common/MobileLayout";
+import Button from "../components/common/Button";
+import Mochi from "../components/common/Mochi";
+import AuthField from "../components/auth/AuthField";
+import Header from "../components/common/Header";
+import { useSignup, useLogin, useAuthState } from "../hooks/useAuth";
+import { useCreateBudget } from "../hooks/useBudgets";
 
-const AGE_OPTIONS = ['10대', '20대', '30대', '40대', '50대+'];
+const AGE_OPTIONS = ["10대", "20대", "30대", "40대", "50대+"];
 
 // 폼 값 → 백엔드 enum 매핑
-const GENDER_MAP = { male: 'MALE', female: 'FEMALE' };
+const GENDER_MAP = { male: "MALE", female: "FEMALE" };
 const AGE_MAP = {
-  '10대': '10s',
-  '20대': '20s',
-  '30대': '30s',
-  '40대': '40s',
-  '50대+': '50s',
+  "10대": "10s",
+  "20대": "20s",
+  "30대": "30s",
+  "40대": "40s",
+  "50대+": "50s",
 };
 
 function Signup() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuthState();
   const signup = useSignup();
   const login = useLogin();
   const createBudget = useCreateBudget();
-  const isPending = signup.isPending || login.isPending || createBudget.isPending;
+  const isPending =
+    signup.isPending || login.isPending || createBudget.isPending;
+
+  // 토큰이 있으면 이미 로그인된 상태 → 메인으로 리다이렉트
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const [form, setForm] = useState({
-    name: '',
-    username: '',
-    password: '',
-    passwordConfirm: '',
-    phone: '',
-    email: '',
-    nickname: '',
-    gender: 'male',
-    ageGroup: '20대',
-    budget: '',
+    name: "",
+    username: "",
+    password: "",
+    passwordConfirm: "",
+    phone: "",
+    email: "",
+    nickname: "",
+    gender: "male",
+    ageGroup: "20대",
+    budget: "",
     terms: false,
     privacy: false,
     marketing: false,
@@ -47,17 +56,17 @@ function Signup() {
   const set = (key) => (e) =>
     setForm((prev) => ({
       ...prev,
-      [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value,
+      [key]: e.target.type === "checkbox" ? e.target.checked : e.target.value,
     }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (form.password !== form.passwordConfirm) {
-      alert('비밀번호가 일치하지 않습니다.');
+      alert("비밀번호가 일치하지 않습니다.");
       return;
     }
     if (!form.terms || !form.privacy) {
-      alert('필수 약관에 동의해주세요.');
+      alert("필수 약관에 동의해주세요.");
       return;
     }
 
@@ -81,28 +90,32 @@ function Signup() {
       const msg =
         err.response?.data?.message ||
         err.message ||
-        '가입에 실패했습니다. 다시 시도해주세요.';
-      alert('가입 실패: ' + msg);
+        "가입에 실패했습니다. 다시 시도해주세요.";
+      alert("가입 실패: " + msg);
       return;
     }
 
     // 2) 예산 생성 — best-effort. 실패해도 가입은 완료된 것으로 처리.
-    const budgetAmount = Number(String(form.budget).replace(/[^0-9]/g, ''));
+    const budgetAmount = Number(String(form.budget).replace(/[^0-9]/g, ""));
     if (budgetAmount > 0) {
       const now = new Date();
-      const targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      const targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
       try {
         await createBudget.mutateAsync({
           targetMonth,
           targetAmount: budgetAmount,
         });
       } catch (err) {
-        console.warn('[signup] budget creation failed, but signup OK', err);
-        alert('가입은 완료됐어요. 예산은 마이페이지에서 다시 설정해주세요.');
+        const budgetErr =
+          err.response?.data?.message || err.message || "알 수 없는 오류";
+        console.warn("[signup] budget creation failed, but signup OK", err);
+        alert(
+          `가입은 완료됐어요!\n예산 설정에 실패했습니다: ${budgetErr}\n마이페이지에서 나중에 설정해주세요.`,
+        );
       }
     }
 
-    navigate('/');
+    navigate("/", { replace: true });
   };
 
   return (
@@ -115,41 +128,92 @@ function Signup() {
         </Hero>
 
         <Form onSubmit={handleSubmit}>
-          <AuthField label="이름 *" name="name" value={form.name} onChange={set('name')} placeholder="이름을 입력해주세요" required />
+          <AuthField
+            label="이름 *"
+            name="name"
+            value={form.name}
+            onChange={set("name")}
+            placeholder="이름을 입력해주세요"
+            required
+          />
 
           <AuthField
             label="아이디"
             name="username"
             value={form.username}
-            onChange={set('username')}
+            onChange={set("username")}
             placeholder="영문/숫자 6~20자"
             required
-            action={
-              <DupBtn type="button">중복확인</DupBtn>
-            }
+            action={<DupBtn type="button">중복확인</DupBtn>}
           />
 
-          <AuthField label="비밀번호 *" name="password" type="password" value={form.password} onChange={set('password')} placeholder="영문/숫자/특수문자 포함 8자 이상" required />
-          <AuthField label="비밀번호 확인 *" name="passwordConfirm" type="password" value={form.passwordConfirm} onChange={set('passwordConfirm')} placeholder="비밀번호 재입력" required />
-          <AuthField label="전화번호 *" name="phone" value={form.phone} onChange={set('phone')} placeholder="010-0000-0000" required />
-          <AuthField label="이메일 *" name="email" type="email" value={form.email} onChange={set('email')} placeholder="example@email.com" required />
-          <AuthField label="별명 *" name="nickname" value={form.nickname} onChange={set('nickname')} placeholder="앱 내 표시명" required />
+          <AuthField
+            label="비밀번호 *"
+            name="password"
+            type="password"
+            value={form.password}
+            onChange={set("password")}
+            placeholder="영문/숫자/특수문자 포함 8자 이상"
+            required
+          />
+          <AuthField
+            label="비밀번호 확인 *"
+            name="passwordConfirm"
+            type="password"
+            value={form.passwordConfirm}
+            onChange={set("passwordConfirm")}
+            placeholder="비밀번호 재입력"
+            required
+          />
+          <AuthField
+            label="전화번호 *"
+            name="phone"
+            value={form.phone}
+            onChange={set("phone")}
+            placeholder="010-0000-0000"
+            required
+          />
+          <AuthField
+            label="이메일 *"
+            name="email"
+            type="email"
+            value={form.email}
+            onChange={set("email")}
+            placeholder="example@email.com"
+            required
+          />
+          <AuthField
+            label="별명 *"
+            name="nickname"
+            value={form.nickname}
+            onChange={set("nickname")}
+            placeholder="앱 내 표시명"
+            required
+          />
 
           <Row2>
             <GenderCard>
               <GenderLabel>성별</GenderLabel>
               <GenderBtns>
-                <GenderBtn type="button" $active={form.gender === 'male'} onClick={() => setForm((p) => ({ ...p, gender: 'male' }))}>
+                <GenderBtn
+                  type="button"
+                  $active={form.gender === "male"}
+                  onClick={() => setForm((p) => ({ ...p, gender: "male" }))}
+                >
                   남
                 </GenderBtn>
-                <GenderBtn type="button" $active={form.gender === 'female'} onClick={() => setForm((p) => ({ ...p, gender: 'female' }))}>
+                <GenderBtn
+                  type="button"
+                  $active={form.gender === "female"}
+                  onClick={() => setForm((p) => ({ ...p, gender: "female" }))}
+                >
                   여
                 </GenderBtn>
               </GenderBtns>
             </GenderCard>
             <AgeCard>
               <GenderLabel>연령대</GenderLabel>
-              <AgeSelect value={form.ageGroup} onChange={set('ageGroup')}>
+              <AgeSelect value={form.ageGroup} onChange={set("ageGroup")}>
                 {AGE_OPTIONS.map((a) => (
                   <option key={a} value={a}>
                     {a}
@@ -159,25 +223,44 @@ function Signup() {
             </AgeCard>
           </Row2>
 
-          <AuthField label="월 예산 *" name="budget" value={form.budget} onChange={set('budget')} placeholder="예: 500,000원" required />
+          <AuthField
+            label="월 예산 *"
+            name="budget"
+            value={form.budget}
+            onChange={set("budget")}
+            placeholder="예: 500,000원"
+            required
+          />
 
           <Terms>
             <CheckRow>
-              <input type="checkbox" checked={form.terms} onChange={set('terms')} />
+              <input
+                type="checkbox"
+                checked={form.terms}
+                onChange={set("terms")}
+              />
               <span>[필수] 서비스 이용약관</span>
             </CheckRow>
             <CheckRow>
-              <input type="checkbox" checked={form.privacy} onChange={set('privacy')} />
+              <input
+                type="checkbox"
+                checked={form.privacy}
+                onChange={set("privacy")}
+              />
               <span>[필수] 개인정보 처리방침</span>
             </CheckRow>
             <CheckRow>
-              <input type="checkbox" checked={form.marketing} onChange={set('marketing')} />
+              <input
+                type="checkbox"
+                checked={form.marketing}
+                onChange={set("marketing")}
+              />
               <span>[선택] 마케팅 정보 수신</span>
             </CheckRow>
           </Terms>
 
           <Button type="submit" size="lg" fullWidth disabled={isPending}>
-            {isPending ? '처리 중...' : '가입 완료'}
+            {isPending ? "처리 중..." : "가입 완료"}
           </Button>
         </Form>
       </Page>

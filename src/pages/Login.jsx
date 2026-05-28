@@ -1,29 +1,37 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
-import MobileLayout from '../components/common/MobileLayout';
-import Button from '../components/common/Button';
-import Mochi from '../components/common/Mochi';
-import AuthField from '../components/auth/AuthField';
-import AuthDivider from '../components/auth/AuthDivider';
-import { useLogin } from '../hooks/useAuth';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
+import MobileLayout from "../components/common/MobileLayout";
+import Button from "../components/common/Button";
+import Mochi from "../components/common/Mochi";
+import AuthField from "../components/auth/AuthField";
+import AuthDivider from "../components/auth/AuthDivider";
+import { useLogin, useAuthState } from "../hooks/useAuth";
 
 function Login() {
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const { isAuthenticated } = useAuthState();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const login = useLogin();
+
+  // 토큰이 있으면 이미 로그인된 상태 → 메인으로 리다이렉트
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await login.mutateAsync({ username, password });
-      navigate('/');
+      navigate("/", { replace: true });
     } catch (err) {
       const msg =
         err.response?.data?.message ||
-        '아이디 또는 비밀번호를 다시 확인해주세요.';
-      alert('로그인 실패: ' + msg);
+        "아이디 또는 비밀번호를 다시 확인해주세요.";
+      alert("로그인 실패: " + msg);
     }
   };
 
@@ -57,8 +65,13 @@ function Login() {
               placeholder="비밀번호를 입력해주세요"
               required
             />
-            <Button type="submit" size="lg" fullWidth disabled={login.isPending}>
-              {login.isPending ? '로그인 중...' : '로그인'}
+            <Button
+              type="submit"
+              size="lg"
+              fullWidth
+              disabled={login.isPending}
+            >
+              {login.isPending ? "로그인 중..." : "로그인"}
             </Button>
           </Fields>
 
@@ -66,15 +79,15 @@ function Login() {
 
           <KakaoBtn
             type="button"
-            onClick={() => alert('카카오 로그인은 준비 중입니다.')}
+            onClick={() => alert("카카오 로그인은 준비 중입니다.")}
           >
             카카오톡으로 시작하기
           </KakaoBtn>
         </Form>
 
         <Footer>
-          아직 회원이 아니신가요?{' '}
-          <LinkBtn type="button" onClick={() => navigate('/signup')}>
+          아직 회원이 아니신가요?{" "}
+          <LinkBtn type="button" onClick={() => navigate("/signup")}>
             회원가입
           </LinkBtn>
         </Footer>

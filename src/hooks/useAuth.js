@@ -28,10 +28,12 @@ export function getToken() {
 }
 
 function setTokens({ accessToken, refreshToken }) {
+  console.log('[setTokens] saving tokens', { accessToken: !!accessToken, refreshToken: !!refreshToken });
   localStorage.setItem(TOKEN_KEY, accessToken);
   if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   // 같은 탭에서도 useAuthState가 반응하도록 storage 이벤트 발사
   window.dispatchEvent(new Event('auth-changed'));
+  console.log('[setTokens] done. token in storage:', localStorage.getItem(TOKEN_KEY) ? 'YES' : 'NO');
 }
 
 function clearTokens() {
@@ -77,6 +79,7 @@ export function useLogin() {
   return useMutation({
     mutationFn: loginApi,
     onSuccess: (data) => {
+      console.log('[useLogin] success response:', data);
       // data = { userId, nickname, accessToken, refreshToken, ... }
       if (data?.accessToken) {
         setTokens({
@@ -85,6 +88,8 @@ export function useLogin() {
         });
         // 'me' 캐시 무효화 → 다음 사용처에서 새 토큰으로 조회
         qc.invalidateQueries({ queryKey: ['me'] });
+      } else {
+        console.warn('[useLogin] accessToken not found in response. data keys:', Object.keys(data || {}));
       }
     },
   });

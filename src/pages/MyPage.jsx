@@ -74,16 +74,10 @@ function MyPage() {
       });
       alert("예산이 수정되었습니다.");
     } catch (err) {
-      const status = err.response?.status;
-      let msg = getApiErrorMessage(err, "예산 수정에 실패했습니다.");
-      if (status === 409) {
-        msg =
-          "이번 달 예산이 이미 있습니다. 서버에 예산 수정(PATCH) API가 필요합니다.";
-      } else if (status === 500 && err.config?.method === "patch") {
-        msg =
-          "예산 수정(PATCH /budgets) API가 서버에 아직 없습니다. 백엔드 팀에 구현을 요청해주세요.";
-      }
-      alert("수정 실패: " + msg);
+      alert(
+        "수정 실패: " +
+          getApiErrorMessage(err, "예산 수정에 실패했습니다."),
+      );
     }
   };
 
@@ -93,9 +87,9 @@ function MyPage() {
         currentPassword: current,
         newPassword: next,
       });
-      alert(
-        "비밀번호 변경 요청이 완료되었습니다.\n로그아웃 후 새 비밀번호로 로그인해 보세요.\n(반영이 안 되면 백엔드 이슈일 수 있습니다.)",
-      );
+      alert("비밀번호가 변경되었습니다. 다시 로그인해주세요.");
+      logout();
+      navigate("/login", { replace: true });
     } catch (err) {
       alert("변경 실패: " + getApiErrorMessage(err, "비밀번호 변경에 실패했습니다."));
     }

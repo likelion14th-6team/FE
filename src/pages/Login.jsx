@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import MobileLayout from "../components/common/MobileLayout";
@@ -6,22 +6,14 @@ import Button from "../components/common/Button";
 import Mochi from "../components/common/Mochi";
 import AuthField from "../components/auth/AuthField";
 import AuthDivider from "../components/auth/AuthDivider";
-import { useLogin, useAuthState } from "../hooks/useAuth";
+import { useLogin } from "../hooks/useAuth";
 import { startKakaoLogin } from "../hooks/useKakaoAuth";
 
 function Login() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthState();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const login = useLogin();
-
-  // 토큰이 있으면 이미 로그인된 상태 → 메인으로 리다이렉트
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/", { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

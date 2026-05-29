@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 
 import MobileLayout from "../components/common/MobileLayout";
 import Header from "../components/common/Header";
@@ -14,85 +15,74 @@ import EditChip from "../components/mypage/EditChip";
 import BudgetCard from "../components/mypage/BudgetCard";
 import PasswordEditModal from "../components/mypage/PasswordEditModal";
 
-import { useNavigate } from "react-router-dom";
-import { useLogout } from "../hooks/useAuth";
+import { useAuthState, useLogout } from "../hooks/useAuth";
 import { useMe, usePatchMe } from "../hooks/useMe";
+import { useBudgets, useUpsertBudget } from "../hooks/useBudgets";
+import { getApiErrorMessage } from "../utils/apiError";
+import {
+  formatAgeGroup,
+  formatGender,
+  getCurrentTargetMonth,
+  getMembershipType,
+  isKakaoUser,
+} from "../utils/userProfile";
 import { parseBudget } from "../utils/formatBudget";
-
-// 더미 사용자 — API 연동 전까지 사용.
-// 백엔드 응답 형태가 정해지면 user.provider === 'KAKAO' 같은 키로 분기 예정.
-const USERS = {
-  normal: {
-    type: "normal",
-    name: "김상우",
-    username: "dev_Sangwoo",
-    phone: "010-0000-000",
-    email: "user@example.com",
-    nickname: "멋쟁이사자",
-    gender: "남성",
-    ageGroup: "20대",
-    budget: 500000,
-  },
-  kakao: {
-    type: "kakao",
-    name: "김상우",
-    username: "kakao_123456",
-    phone: "010-0000-000",
-    email: "user@example.com",
-    nickname: "멋쟁이사자",
-    gender: "남성",
-    ageGroup: "20대",
-    budget: 500000,
-  },
-};
 
 function MyPage() {
   const navigate = useNavigate();
   const logout = useLogout();
-  useMe();
+  const { isAuthenticated } = useAuthState();
+  const { data: me, isLoading, isError, error, refetch } = useMe();
+  const { data: budgetData, isLoading: budgetLoading } = useBudgets();
   const patchMe = usePatchMe();
+  const upsertBudget = useUpsertBudget();
 
-  // TODO(API): 실제 인증 사용자로 교체. 지금은 토글로 두 모드 확인용.
-  const [userType, setUserType] = useState("normal");
-  const [user, setUser] = useState(USERS.normal);
-  const isKakao = user.type === "kakao";
-
-  // 토글 시 사용자 객체 리셋
-  useEffect(() => {
-    setUser(USERS[userType]);
-  }, [userType]);
-
-  // 다이얼로그 오픈 상태
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [nicknameOpen, setNicknameOpen] = useState(false);
   const [budgetOpen, setBudgetOpen] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+  const membershipType = getMembershipType(me);
+  const isKakao = isKakaoUser(me);
+  const budgetAmount = budgetData?.targetAmount ?? 0;
+
   const handleSubmitNickname = async (newNickname) => {
+    const trimmed = newNickname.trim();
     try {
-      await patchMe.mutateAsync({ nickname: newNickname });
-      setUser((u) => ({ ...u, nickname: newNickname }));
+      await patchMe.mutateAsync({ nickname: trimmed });
       alert("별명이 수정되었습니다.");
     } catch (err) {
-      const msg = err.response?.data?.message || "별명 수정에 실패했습니다.";
-      alert("수정 실패: " + msg);
+      alert("수정 실패: " + getApiErrorMessage(err, "별명 수정에 실패했습니다."));
     }
   };
 
   const handleSubmitBudget = async (newBudgetStr) => {
-    const newBudget = parseInt(newBudgetStr.replace(/,/g, ""), 10);
-    if (Number.isNaN(newBudget)) return;
+    const newBudget = parseBudget(newBudgetStr);
+    if (!newBudget || newBudget <= 0) return;
 
     try {
-      await patchMe.mutateAsync({
-        // 예산은 별도 API가 있지만, user 정보 업데이트와 함께 처리
-        // 실제로는 useCreateBudget을 사용해야 함
+      await upsertBudget.mutateAsync({
+        targetMonth: getCurrentTargetMonth(),
+        targetAmount: newBudget,
       });
-      setUser((u) => ({ ...u, budget: newBudget }));
       alert("예산이 수정되었습니다.");
     } catch (err) {
-      const msg = err.response?.data?.message || "예산 수정에 실패했습니다.";
+      const status = err.response?.status;
+      let msg = getApiErrorMessage(err, "예산 수정에 실패했습니다.");
+      if (status === 409) {
+        msg =
+          "이번 달 예산이 이미 있습니다. 서버에 예산 수정(PATCH) API가 필요합니다.";
+      } else if (status === 500 && err.config?.method === "patch") {
+        msg =
+          "예산 수정(PATCH /budgets) API가 서버에 아직 없습니다. 백엔드 팀에 구현을 요청해주세요.";
+      }
       alert("수정 실패: " + msg);
     }
   };
@@ -103,57 +93,64 @@ function MyPage() {
         currentPassword: current,
         newPassword: next,
       });
-      alert("비밀번호가 변경되었습니다.");
+      alert(
+        "비밀번호 변경 요청이 완료되었습니다.\n로그아웃 후 새 비밀번호로 로그인해 보세요.\n(반영이 안 되면 백엔드 이슈일 수 있습니다.)",
+      );
     } catch (err) {
-      const msg =
-        err.response?.data?.message || "비밀번호 변경에 실패했습니다.";
-      alert("변경 실패: " + msg);
+      alert("변경 실패: " + getApiErrorMessage(err, "비밀번호 변경에 실패했습니다."));
     }
   };
 
   const handleLogoutConfirm = () => {
-    // 토큰 + 모든 캐시 비움
     logout();
     navigate("/login");
   };
 
   const handleWithdrawConfirm = () => {
-    // TODO(API): 백엔드 회원탈퇴 API(DELETE /users/me 등) 출시 시 호출 추가.
-    //   현재 백엔드 Swagger에 탈퇴 엔드포인트 없음 → 클라이언트 정리만 수행.
+    // TODO(API): DELETE /users/me 등 탈퇴 API 연동
     logout();
     navigate("/signup");
   };
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  if (isLoading) {
+    return (
+      <MobileLayout>
+        <Header title="마이페이지" />
+        <StatusMessage>내 정보를 불러오는 중...</StatusMessage>
+        <BottomNav />
+      </MobileLayout>
+    );
+  }
+
+  if (isError || !me) {
+    return (
+      <MobileLayout>
+        <Header title="마이페이지" />
+        <StatusMessage>
+          {getApiErrorMessage(error, "내 정보를 불러오지 못했습니다.")}
+          <RetryBtn type="button" onClick={() => refetch()}>
+            다시 시도
+          </RetryBtn>
+        </StatusMessage>
+        <BottomNav />
+      </MobileLayout>
+    );
+  }
 
   return (
     <MobileLayout>
       <Header title="마이페이지" />
 
       <Body>
-        {/* TODO: API 연동 시 제거 — 개발용 모드 토글 */}
-        <DevToggle>
-          <DevCaption>🛠 개발용 모드</DevCaption>
-          <DevButtons>
-            <DevBtn
-              $active={userType === "normal"}
-              onClick={() => setUserType("normal")}
-            >
-              일반
-            </DevBtn>
-            <DevBtn
-              $active={userType === "kakao"}
-              onClick={() => setUserType("kakao")}
-            >
-              카카오
-            </DevBtn>
-          </DevButtons>
-        </DevToggle>
-
-        {/* 프로필 + 정보 카드 */}
         <ProfileCard>
           <ProfileHead>
-            <Avatar $type={user.type} />
-            <UserName>{user.name}</UserName>
-            <MembershipBadge type={user.type} />
+            <Avatar $type={membershipType} />
+            <UserName>{me.name}</UserName>
+            <MembershipBadge type={membershipType} />
           </ProfileHead>
 
           <Divider />
@@ -161,12 +158,12 @@ function MyPage() {
           <InfoList>
             <InfoRow
               label="아이디"
-              value={user.username}
+              value={me.username}
               action={isKakao ? <EditChip variant="disabled" /> : undefined}
             />
             <InfoRow
               label="비밀번호"
-              value={isKakao ? "소셜 로그인" : undefined}
+              value={isKakao ? "소셜 로그인" : "••••••••"}
               action={
                 isKakao ? (
                   <EditChip variant="disabled" />
@@ -178,11 +175,11 @@ function MyPage() {
                 )
               }
             />
-            <InfoRow label="전화번호" value={user.phone} />
-            <InfoRow label="이메일" value={user.email} />
+            <InfoRow label="전화번호" value={me.phone || "-"} />
+            <InfoRow label="이메일" value={me.email} />
             <InfoRow
               label="별명"
-              value={user.nickname}
+              value={me.nickname}
               action={
                 <EditChip
                   variant="edit"
@@ -190,15 +187,16 @@ function MyPage() {
                 />
               }
             />
-            <InfoRow label="성별" value={user.gender} />
-            <InfoRow label="연령대" value={user.ageGroup} />
+            <InfoRow label="성별" value={formatGender(me.gender)} />
+            <InfoRow label="연령대" value={formatAgeGroup(me.ageGroup)} />
           </InfoList>
         </ProfileCard>
 
-        {/* 예산 */}
-        <BudgetCard amount={user.budget} onEdit={() => setBudgetOpen(true)} />
+        <BudgetCard
+          amount={budgetLoading ? 0 : budgetAmount}
+          onEdit={() => setBudgetOpen(true)}
+        />
 
-        {/* 로그아웃 + 회원 탈퇴 */}
         <LogoutCard type="button" onClick={() => setLogoutOpen(true)}>
           로그아웃
         </LogoutCard>
@@ -209,33 +207,30 @@ function MyPage() {
 
       <BottomNav />
 
-      {/* 별명 수정 */}
       <InputDialog
         open={nicknameOpen}
         onClose={() => setNicknameOpen(false)}
         title="별명 수정"
         label="새 별명"
-        placeholder="멋쟁이사자"
-        initialValue={user.nickname}
+        placeholder="재영"
+        initialValue={me.nickname}
         onSubmit={handleSubmitNickname}
-        validate={(v) =>
-          v.trim().length < 1
-            ? "별명을 입력해주세요"
-            : v.length > 20
-              ? "20자 이하로 입력해주세요"
-              : null
-        }
+        validate={(v) => {
+          const len = v.trim().length;
+          if (len < 2) return "별명은 2자 이상 입력해주세요";
+          if (len > 20) return "20자 이하로 입력해주세요";
+          return null;
+        }}
         confirmLabel="저장"
       />
 
-      {/* 예산 수정 */}
       <InputDialog
         open={budgetOpen}
         onClose={() => setBudgetOpen(false)}
         title="이번 달 예산 수정"
         label="목표 예산"
         placeholder="500,000"
-        initialValue={String(user.budget).replace(/\D/g, "")}
+        initialValue={budgetAmount > 0 ? String(budgetAmount) : ""}
         inputType="text"
         inputMode="numeric"
         suffix="원"
@@ -253,14 +248,12 @@ function MyPage() {
         confirmLabel="저장"
       />
 
-      {/* 비밀번호 변경 */}
       <PasswordEditModal
         open={passwordOpen}
         onClose={() => setPasswordOpen(false)}
         onSubmit={handleSubmitPassword}
       />
 
-      {/* 로그아웃 / 탈퇴 확인 */}
       <ConfirmDialog
         open={logoutOpen}
         onClose={() => setLogoutOpen(false)}
@@ -295,44 +288,27 @@ const Body = styled.div`
   padding-bottom: 16px;
 `;
 
-/* ===== 개발용 토글 ===== */
-
-const DevToggle = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px dashed rgba(0, 0, 0, 0.15);
-  border-radius: 10px;
-`;
-
-const DevCaption = styled.span`
-  font-size: ${({ theme }) => theme.fontSizes.xs};
+const StatusMessage = styled.p`
+  margin: 48px 16px;
+  text-align: center;
+  font-size: ${({ theme }) => theme.fontSizes.base};
   color: ${({ theme }) => theme.colors.text.secondary};
+  line-height: 1.5;
 `;
 
-const DevButtons = styled.div`
-  display: flex;
-  gap: 4px;
-`;
-
-const DevBtn = styled.button`
+const RetryBtn = styled.button`
+  display: block;
+  margin: 16px auto 0;
+  padding: 10px 20px;
   border: none;
   border-radius: ${({ theme }) => theme.radius.pill};
-  padding: 4px 12px;
+  background: ${({ theme }) => theme.colors.mint.dark};
+  color: ${({ theme }) => theme.colors.white};
   font-family: inherit;
-  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: 700;
   cursor: pointer;
-  background: ${({ theme, $active }) =>
-    $active ? theme.colors.text.brand : theme.colors.white};
-  color: ${({ theme, $active }) =>
-    $active ? theme.colors.white : theme.colors.text.secondary};
 `;
-
-/* ===== 프로필 ===== */
 
 const ProfileCard = styled.section`
   background: ${({ theme }) => theme.colors.white};
@@ -378,8 +354,6 @@ const InfoList = styled.div`
   gap: 14px;
   padding: 2px 4px 4px;
 `;
-
-/* ===== 로그아웃 / 탈퇴 ===== */
 
 const LogoutCard = styled.button`
   width: 100%;

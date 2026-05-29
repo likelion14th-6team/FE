@@ -7,7 +7,7 @@ import Mochi from "../components/common/Mochi";
 import AuthField from "../components/auth/AuthField";
 import PhoneNumberInput from "../components/auth/PhoneNumberInput";
 import Header from "../components/common/Header";
-import { useSignup, useLogin, useAuthState } from "../hooks/useAuth";
+import { useSignup, useLogin } from "../hooks/useAuth";
 import { useCreateBudget } from "../hooks/useBudgets";
 
 const AGE_OPTIONS = ["10대", "20대", "30대", "40대", "50대+"];
@@ -25,7 +25,6 @@ const AGE_MAP = {
 function Signup() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated } = useAuthState();
   const fromKakao = location.state?.fromKakao === true;
   const kakaoProfile = location.state?.kakaoProfile;
   const signup = useSignup();
@@ -33,13 +32,6 @@ function Signup() {
   const createBudget = useCreateBudget();
   const isPending =
     signup.isPending || login.isPending || createBudget.isPending;
-
-  // 토큰이 있으면 이미 로그인된 상태 → 메인으로 리다이렉트
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/", { replace: true });
-    }
-  }, [isAuthenticated, navigate]);
 
   const [form, setForm] = useState({
     name: kakaoProfile?.name || "",
@@ -138,7 +130,12 @@ function Signup() {
 
   return (
     <MobileLayout $hasBottomNav={false}>
-      <Header align="left" title="회원가입" showBack />
+      <Header
+        align="left"
+        title="회원가입"
+        showBack
+        onBack={() => navigate("/login")}
+      />
       <Page>
         <Hero>
           <Mochi expression="excited" size="xl" />
@@ -283,6 +280,13 @@ function Signup() {
             {isPending ? "처리 중..." : "가입 완료"}
           </Button>
         </Form>
+
+        <Footer>
+          이미 계정이 있으신가요?{" "}
+          <LinkBtn type="button" onClick={() => navigate("/login")}>
+            로그인
+          </LinkBtn>
+        </Footer>
       </Page>
     </MobileLayout>
   );
@@ -405,5 +409,24 @@ const CheckRow = styled.label`
   align-items: center;
   gap: 10px;
   font-size: ${({ theme }) => theme.fontSizes.sm};
+  cursor: pointer;
+`;
+
+const Footer = styled.p`
+  margin: 8px 0 0;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.text.gray};
+  text-align: center;
+`;
+
+const LinkBtn = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.text.ink};
+  text-decoration: underline;
   cursor: pointer;
 `;

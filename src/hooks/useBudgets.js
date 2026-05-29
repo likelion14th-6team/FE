@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchBudgets, createBudget } from '../api/budget';
+import { createBudget, fetchBudgets, upsertBudget } from '../api/budget';
+import { getCurrentTargetMonth } from '../utils/userProfile';
 import { useAuthState } from './useAuth';
 
 /**
@@ -7,14 +8,19 @@ import { useAuthState } from './useAuth';
  *
  * const { data: budgets, isLoading } = useBudgets();
  */
-export function useBudgets() {
+export function useBudgets(targetMonth = getCurrentTargetMonth()) {
   const { isAuthenticated } = useAuthState();
 
   return useQuery({
-    queryKey: ['budgets'],
-    queryFn: fetchBudgets,
+    queryKey: ['budgets', targetMonth],
+    queryFn: () => fetchBudgets({ targetMonth }),
     enabled: isAuthenticated,
     staleTime: 1000 * 60 * 5,
+    retry: (failureCount, error) => {
+      // 해당 월 예산 미설정(404)은 에러 UI 대신 빈 상태로 처리
+      if (error?.response?.status === 404) return false;
+      return failureCount < 1;
+    },
   });
 }
 
@@ -29,6 +35,18 @@ export function useCreateBudget() {
 
   return useMutation({
     mutationFn: createBudget,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['budgets'] });
+    },
+  });
+}
+
+/** 마이페이지 등 — 기존 예산 있으면 PATCH, 없으면 POST */
+export function useUpsertBudget() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: upsertBudget,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['budgets'] });
     },

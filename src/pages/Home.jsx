@@ -9,14 +9,22 @@ import CalendarCard from "../components/main/CalendarCard";
 import DailyExpenseList from "../components/main/DailyExpenseList";
 import { MOCK_EXPENSES } from "../data/mockExpenses";
 import { isSameDay } from "../utils/calendarUtils";
+import { useMe } from "../hooks/useMe";
+import { useBudgets } from "../hooks/useBudgets";
+import { getCurrentTargetMonth } from "../utils/userProfile";
 
 function Home() {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [selectedDate, setSelectedDate] = useState(today);
+  const targetMonth = getCurrentTargetMonth();
+  const { data: me } = useMe();
+  const { data: budgetData } = useBudgets(targetMonth);
 
   const selectedKey = selectedDate.toISOString().slice(0, 10);
+  const displayName = me?.nickname || me?.name || "회원";
+  const budgetAmount = budgetData?.targetAmount ?? 0;
 
   const dayExpenses = useMemo(
     () => MOCK_EXPENSES.filter((e) => isSameDay(e.date, selectedKey)),
@@ -42,9 +50,9 @@ function Home() {
       <Header title="메인" />
       <Body>
         <MonthlySummaryCard
-          userName="박재영"
+          userName={displayName}
           monthLabel={`${year}년 ${month}월`}
-          budget={1000000}
+          budget={budgetAmount}
           spent={420000}
         />
         <CalendarCard

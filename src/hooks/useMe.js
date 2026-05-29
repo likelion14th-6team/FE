@@ -35,8 +35,18 @@ export function usePatchMe() {
 
   return useMutation({
     mutationFn: patchMe,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['me'] });
+    onSuccess: (data) => {
+      if (data?.userId) {
+        qc.setQueryData(["me"], (prev) => {
+          if (!prev) return data;
+          const merged = { ...prev };
+          Object.entries(data).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) merged[key] = value;
+          });
+          return merged;
+        });
+      }
+      qc.invalidateQueries({ queryKey: ["me"] });
     },
   });
 }

@@ -101,6 +101,7 @@ export function useLogin() {
       console.log("[useLogin] success response:", data);
       if (saveLoginTokens(data)) {
         qc.invalidateQueries({ queryKey: ["me"] });
+        qc.invalidateQueries({ queryKey: ["budgets"] });
       } else {
         console.warn(
           "[useLogin] accessToken not found in response. data keys:",

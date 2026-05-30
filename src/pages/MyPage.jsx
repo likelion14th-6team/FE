@@ -59,7 +59,9 @@ function MyPage() {
       await patchMe.mutateAsync({ nickname: trimmed });
       alert("별명이 수정되었습니다.");
     } catch (err) {
-      alert("수정 실패: " + getApiErrorMessage(err, "별명 수정에 실패했습니다."));
+      alert(
+        "수정 실패: " + getApiErrorMessage(err, "별명 수정에 실패했습니다."),
+      );
     }
   };
 
@@ -75,8 +77,7 @@ function MyPage() {
       alert("예산이 수정되었습니다.");
     } catch (err) {
       alert(
-        "수정 실패: " +
-          getApiErrorMessage(err, "예산 수정에 실패했습니다."),
+        "수정 실패: " + getApiErrorMessage(err, "예산 수정에 실패했습니다."),
       );
     }
   };
@@ -91,7 +92,10 @@ function MyPage() {
       logout();
       navigate("/login", { replace: true });
     } catch (err) {
-      alert("변경 실패: " + getApiErrorMessage(err, "비밀번호 변경에 실패했습니다."));
+      alert(
+        "변경 실패: " +
+          getApiErrorMessage(err, "비밀번호 변경에 실패했습니다."),
+      );
     }
   };
 
@@ -358,7 +362,7 @@ const LogoutCard = styled.button`
   box-shadow: ${({ theme }) => theme.shadow.cardSoft};
   font-family: inherit;
   font-size: ${({ theme }) => theme.fontSizes.base};
-  font-weight: 700;
+  font-weight: 500;
   color: ${({ theme }) => theme.colors.text.ink};
   cursor: pointer;
 

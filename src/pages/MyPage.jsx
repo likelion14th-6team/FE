@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import MobileLayout from "../components/common/MobileLayout";
 import Header from "../components/common/Header";
@@ -33,6 +33,8 @@ import { parseBudget } from "../utils/formatBudget";
 
 function MyPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromKakaoLogin = location.state?.fromKakao === true;
   const logout = useLogout();
   const { isAuthenticated } = useAuthState();
   const { data: me, isLoading, isError, error, refetch } = useMe();
@@ -183,6 +185,11 @@ function MyPage() {
       <Header title="마이페이지" />
 
       <Body>
+        {fromKakaoLogin && (
+          <WelcomeBanner>
+            🎉 카카오 로그인 완료! 아래에서 정보와 예산을 설정해주세요.
+          </WelcomeBanner>
+        )}
         <ProfileCard>
           <ProfileHead>
             <Avatar $type={membershipType} />
@@ -198,20 +205,18 @@ function MyPage() {
               value={me.username}
               action={isKakao ? <EditChip variant="disabled" /> : undefined}
             />
-            <InfoRow
-              label="비밀번호"
-              value={isKakao ? "소셜 로그인" : "••••••••"}
-              action={
-                isKakao ? (
-                  <EditChip variant="disabled" />
-                ) : (
+            {!isKakao && (
+              <InfoRow
+                label="비밀번호"
+                value="••••••••"
+                action={
                   <EditChip
                     variant="edit"
                     onClick={() => setPasswordOpen(true)}
                   />
-                )
-              }
-            />
+                }
+              />
+            )}
             <InfoRow
               label="전화번호"
               value={me.phone || "-"}
@@ -344,11 +349,13 @@ function MyPage() {
         confirmLabel="저장"
       />
 
-      <PasswordEditModal
-        open={passwordOpen}
-        onClose={() => setPasswordOpen(false)}
-        onSubmit={handleSubmitPassword}
-      />
+      {!isKakao && (
+        <PasswordEditModal
+          open={passwordOpen}
+          onClose={() => setPasswordOpen(false)}
+          onSubmit={handleSubmitPassword}
+        />
+      )}
 
       <ConfirmDialog
         open={logoutOpen}
@@ -467,6 +474,16 @@ const LogoutCard = styled.button`
   &:hover {
     box-shadow: ${({ theme }) => theme.shadow.cardHover};
   }
+`;
+
+const WelcomeBanner = styled.div`
+  padding: 14px 18px;
+  border-radius: ${({ theme }) => theme.radius.card};
+  background: ${({ theme }) => theme.colors.accent.kakao};
+  color: #0a0a0a;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: 500;
+  line-height: 1.5;
 `;
 
 const WithdrawText = styled.button`

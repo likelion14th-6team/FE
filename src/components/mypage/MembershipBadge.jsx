@@ -3,10 +3,10 @@ import styled from "styled-components";
 /**
  * 회원 유형 배지.
  *  - type="normal": "일반 회원" (민트)
- *  - type="kakao":  "카카오 가입" (노란)
+ *  - type="kakao":  "카카오 회원" (노란)
  */
 function MembershipBadge({ type = "normal" }) {
-  const label = type === "kakao" ? "카카오 가입" : "일반 회원";
+  const label = type === "kakao" ? "카카오 회원" : "일반 회원";
   return <Badge $type={type}>{label}</Badge>;
 }
 

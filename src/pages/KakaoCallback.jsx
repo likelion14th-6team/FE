@@ -11,7 +11,7 @@ import {
   useKakaoCodeLogin,
   useKakaoSignup,
 } from "../hooks/useKakaoAuth";
-import { saveLoginTokens } from "../hooks/useAuth";
+import { saveLoginTokens, setKakaoUserFlag } from "../hooks/useAuth";
 import { buildKakaoSignupPayload } from "../utils/kakaoSignup";
 
 function getErrorMessage(err, fallback) {
@@ -21,9 +21,10 @@ function getErrorMessage(err, fallback) {
 
 function finishLogin(data, { qc, navigate }) {
   if (saveLoginTokens(data)) {
+    setKakaoUserFlag(); // 카카오 로그인 여부 localStorage에 저장
     qc.invalidateQueries({ queryKey: ["me"] });
     qc.invalidateQueries({ queryKey: ["budgets"] });
-    navigate("/", { replace: true });
+    navigate("/mypage", { replace: true, state: { fromKakao: true } });
     return true;
   }
   return false;

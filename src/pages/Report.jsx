@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import styled from "styled-components";
 import MobileLayout from "../components/common/MobileLayout";
 import Header from "../components/common/Header";
@@ -7,33 +8,102 @@ import BottomNav from "../components/common/BottomNav";
 import Card from "../components/common/Card";
 import ProgressBar from "../components/common/ProgressBar";
 import Mochi from "../components/common/Mochi";
+import {
+  getReportSummary,
+  getReportCategories,
+  getReportSatisfaction,
+  getReportAi,
+} from "../api/report";
 
-const CATEGORIES = [
-  { label: "식비", pct: 40, color: "#F4A97F" },
-  { label: "교통", pct: 25, color: "#7BB8D4" },
-  { label: "쇼핑", pct: 20, color: "#C49BD4" },
-  { label: "문화", pct: 15, color: "#F0C96A" },
-];
+// YYYY-MM → 이전/다음 달 계산
+function shiftMonth(ym, delta) {
+  const [y, m] = ym.split("-").map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
 
-const SATISFACTION_ROWS = [
-  { label: "식비", pct: 60, color: "#F4A97F" },
-  { label: "문화", pct: 60, color: "#7BB8D4" },
-  { label: "쇼핑", pct: 60, color: "#C49BD4" },
-  { label: "기타", pct: 60, color: "#B0B8B4" },
-];
+// YYYY-MM → "YYYY년 M월"
+function toLabel(ym) {
+  const [y, m] = ym.split("-");
+  return `${y}년 ${parseInt(m)}월`;
+}
 
-const TIME_BARS = [
-  { label: "오전", h: 22 },
-  { label: "오후", h: 30 },
-  { label: "밤", h: 48 },
-  { label: "새벽", h: 56 },
-];
+// averageSatisfaction(1~5) → 바 높이(px)
+function satToH(sat) {
+  return Math.round(8 + (sat / 5) * 48);
+}
+
+// 카테고리 배열 → conic-gradient 문자열
+function buildGradient(categories) {
+  if (!categories?.length) return "conic-gradient(#eee 0% 100%)";
+  let acc = 0;
+  const stops = categories.map((c) => {
+    const start = acc;
+    acc += c.percentage;
+    return `${c.colorCode} ${start.toFixed(2)}% ${acc.toFixed(2)}%`;
+  });
+  return `conic-gradient(${stops.join(", ")})`;
+}
+
+// 비교 막대 높이 계산 (최대 54px)
+function compareHeights(last, current) {
+  const max = Math.max(last, current, 1);
+  return {
+    lastH: Math.round((last / max) * 54),
+    currH: Math.round((current / max) * 54),
+  };
+}
 
 function Report() {
-  const [monthLabel] = useState("2026년 4월");
-  const budget = 1000000;
-  const spent = 842300;
-  const ratio = Math.round((spent / budget) * 100);
+  const [targetMonth, setTargetMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
+
+  const monthLabel = toLabel(targetMonth);
+  const prevLabel = toLabel(shiftMonth(targetMonth, -1));
+
+  const { data: summary, isLoading: loadingSummary } = useQuery({
+    queryKey: ["report-summary", targetMonth],
+    queryFn: () => getReportSummary(targetMonth),
+  });
+
+  const { data: categories, isLoading: loadingCat } = useQuery({
+    queryKey: ["report-categories", targetMonth],
+    queryFn: () => getReportCategories(targetMonth, "EXPENSE"),
+  });
+
+  const { data: timeSat } = useQuery({
+    queryKey: ["report-satisfaction-time", targetMonth],
+    queryFn: () => getReportSatisfaction(targetMonth, "TIME_PERIOD"),
+  });
+
+  const { data: catSat } = useQuery({
+    queryKey: ["report-satisfaction-cat", targetMonth],
+    queryFn: () => getReportSatisfaction(targetMonth, "CATEGORY"),
+  });
+
+  const { data: ai, isLoading: loadingAi } = useQuery({
+    queryKey: ["report-ai", targetMonth],
+    queryFn: () => getReportAi(targetMonth),
+  });
+
+  // 예산 요약
+  const spent = summary?.totalExpense ?? 0;
+  const budget = summary?.targetAmount ?? 0;
+  const ratio = budget > 0 ? Math.min(Math.round((spent / budget) * 100), 100) : 0;
+  const lastMonthExpense = summary?.comparedToLastMonth?.lastMonthExpense ?? 0;
+  const { lastH, currH } = compareHeights(lastMonthExpense, spent);
+
+  // 카테고리 도넛
+  const catList = categories?.categories ?? [];
+  const gradient = buildGradient(catList);
+
+  // 시간대 만족도 바
+  const timeGroups = timeSat?.groups ?? [];
+
+  // 카테고리별 만족도
+  const catSatGroups = catSat?.groups ?? [];
 
   return (
     <MobileLayout>
@@ -41,103 +111,154 @@ function Report() {
 
       <Body>
         <MonthPicker>
-          <PickerBtn type="button" aria-label="이전 달">
+          <PickerBtn
+            type="button"
+            aria-label="이전 달"
+            onClick={() => setTargetMonth((m) => shiftMonth(m, -1))}
+          >
             <ChevronLeft size={20} />
           </PickerBtn>
           <span>{monthLabel}</span>
-          <PickerBtn type="button" aria-label="다음 달">
+          <PickerBtn
+            type="button"
+            aria-label="다음 달"
+            onClick={() => setTargetMonth((m) => shiftMonth(m, 1))}
+          >
             <ChevronRight size={20} />
           </PickerBtn>
         </MonthPicker>
 
+        {/* 예산 요약 */}
         <Card as="section">
           <CardPad>
-            <Muted>총 예산 ₩ 1,000,000 중 이번 달 소비 총액</Muted>
-            <BigAmount>₩ {spent.toLocaleString("ko-KR")}</BigAmount>
-            <ProgressBar ratio={ratio} />
+            {loadingSummary ? (
+              <Skeleton />
+            ) : summary ? (
+              <>
+                <Muted>총 예산 ₩ {budget.toLocaleString("ko-KR")} 중 이번 달 소비 총액</Muted>
+                <BigAmount>₩ {spent.toLocaleString("ko-KR")}</BigAmount>
+                <ProgressBar ratio={ratio} />
+                {summary.comparedToLastMonth && (
+                  <CompareText $down={summary.comparedToLastMonth.difference < 0}>
+                    전월 대비{" "}
+                    {summary.comparedToLastMonth.difference < 0 ? "▼" : "▲"}{" "}
+                    ₩ {Math.abs(summary.comparedToLastMonth.difference).toLocaleString("ko-KR")} (
+                    {Math.abs(summary.comparedToLastMonth.differencePercentage).toFixed(1)}%)
+                  </CompareText>
+                )}
+              </>
+            ) : (
+              <EmptyMsg>이번 달 예산이 설정되지 않았어요.</EmptyMsg>
+            )}
           </CardPad>
         </Card>
 
+        {/* 카테고리별 소비 */}
         <Card as="section">
           <CardPad>
             <SectionTitle>카테고리별 소비</SectionTitle>
-            <CategoryRow>
-              <Donut aria-hidden>◐</Donut>
-              <Legend>
-                {CATEGORIES.map((c) => (
-                  <LegendItem key={c.label}>
-                    <Dot $color={c.color} />
-                    {c.label} {c.pct}%
-                  </LegendItem>
-                ))}
-              </Legend>
-            </CategoryRow>
+            {loadingCat ? (
+              <Skeleton />
+            ) : catList.length > 0 ? (
+              <CategoryRow>
+                <Donut $gradient={gradient} />
+                <Legend>
+                  {catList.map((c) => (
+                    <LegendItem key={c.categoryId}>
+                      <Dot $color={c.colorCode} />
+                      {c.categoryName} {c.percentage.toFixed(1)}%
+                    </LegendItem>
+                  ))}
+                </Legend>
+              </CategoryRow>
+            ) : (
+              <EmptyMsg>지출 내역이 없어요.</EmptyMsg>
+            )}
           </CardPad>
         </Card>
 
+        {/* 전월 대비 증감 */}
         <Card as="section">
           <CardPad>
             <SectionTitle>전월 대비 증감</SectionTitle>
             <BarCompare>
-              <Bar $h={38} $muted />
-              <Bar $h={54} />
+              <Bar $h={lastH || 4} $muted />
+              <Bar $h={currH || 4} />
             </BarCompare>
             <BarLabels>
-              <span>3월</span>
-              <span>4월</span>
+              <span>{prevLabel}</span>
+              <span>{monthLabel}</span>
             </BarLabels>
           </CardPad>
         </Card>
 
+        {/* 시간대별 만족도 */}
         <Card as="section">
           <CardPad>
             <SectionTitle>시간대별 만족도</SectionTitle>
-            <TimeChart>
-              {TIME_BARS.map((t) => (
-                <TimeCol key={t.label}>
-                  <TimeBar $h={t.h} />
-                  <TimeLabel>{t.label}</TimeLabel>
-                </TimeCol>
-              ))}
-            </TimeChart>
+            {timeGroups.length > 0 ? (
+              <TimeChart>
+                {timeGroups.map((g) => (
+                  <TimeCol key={g.key}>
+                    <TimeBar $h={satToH(g.averageSatisfaction)} />
+                    <TimeLabel>{g.label.split(" ")[0]}</TimeLabel>
+                  </TimeCol>
+                ))}
+              </TimeChart>
+            ) : (
+              <EmptyMsg>만족도 데이터가 없어요.</EmptyMsg>
+            )}
           </CardPad>
         </Card>
 
+        {/* 카테고리별 만족도 */}
         <Card as="section">
           <CardPad>
             <SectionTitle>카테고리별 만족도</SectionTitle>
-            <SatList>
-              {SATISFACTION_ROWS.map((row) => (
-                <SatRow key={row.label}>
-                  <SatName>{row.label}</SatName>
-                  <SatTrack>
-                    <SatFill $pct={row.pct} $color={row.color} />
-                  </SatTrack>
-                  <SatPct>{row.pct}%</SatPct>
-                </SatRow>
-              ))}
-            </SatList>
+            {catSatGroups.length > 0 ? (
+              <SatList>
+                {catSatGroups.map((g) => (
+                  <SatRow key={g.key}>
+                    <SatName>{g.label}</SatName>
+                    <SatTrack>
+                      <SatFill
+                        $pct={Math.round((g.averageSatisfaction / 5) * 100)}
+                        $color={g.colorCode ?? "#7BB8D4"}
+                      />
+                    </SatTrack>
+                    <SatPct>{g.averageSatisfaction.toFixed(1)}</SatPct>
+                  </SatRow>
+                ))}
+              </SatList>
+            ) : (
+              <EmptyMsg>만족도 데이터가 없어요.</EmptyMsg>
+            )}
           </CardPad>
         </Card>
 
+        {/* AI 한줄평 */}
         <AiCard>
           <AiTitle>AI 한줄평</AiTitle>
-          <AiText>
-            새벽 충동 쇼핑이 후회로 이어졌어요.
-            <br />
-            식비는 만족도가 꾸준히 높네요!
-          </AiText>
+          {loadingAi ? (
+            <Skeleton />
+          ) : ai ? (
+            <AiText>{ai.aiComment}</AiText>
+          ) : (
+            <AiText>AI 한줄평을 불러올 수 없어요.</AiText>
+          )}
         </AiCard>
 
+        {/* 다음 달 제안 */}
         <Card as="section">
           <TipRow>
             <Mochi expression="report" />
             <TipText>
               <SectionTitle>다음 달에는 이렇게 해 보세요!</SectionTitle>
-              <TipList>
-                <li>새벽 쇼핑 알림 설정</li>
-                <li>식비 예산 -20% 조정</li>
-              </TipList>
+              {ai?.actionSuggestion ? (
+                <TipBody>{ai.actionSuggestion}</TipBody>
+              ) : (
+                <TipBody>제안 내용을 불러오는 중이에요.</TipBody>
+              )}
             </TipText>
           </TipRow>
         </Card>
@@ -149,6 +270,8 @@ function Report() {
 }
 
 export default Report;
+
+/* ── Styled Components ─────────────────────────────────────── */
 
 const Body = styled.div`
   display: flex;
@@ -195,6 +318,13 @@ const BigAmount = styled.p`
   font-weight: 800;
 `;
 
+const CompareText = styled.p`
+  margin: 8px 0 0;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ $down, theme }) =>
+    $down ? theme.colors.text.brand : theme.colors.text.gray};
+`;
+
 const SectionTitle = styled.h2`
   margin: 0 0 16px;
   font-size: ${({ theme }) => theme.fontSizes.base};
@@ -208,20 +338,11 @@ const CategoryRow = styled.div`
 `;
 
 const Donut = styled.div`
+  flex-shrink: 0;
   width: 68px;
   height: 68px;
   border-radius: 50%;
-  background: conic-gradient(
-    #f4a97f 0 40%,
-    #7bb8d4 40% 65%,
-    #c49bd4 65% 85%,
-    #f0c96a 85% 100%
-  );
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
-  color: transparent;
+  background: ${({ $gradient }) => $gradient};
 `;
 
 const Legend = styled.div`
@@ -242,6 +363,7 @@ const Dot = styled.span`
   height: 8px;
   border-radius: 50%;
   background: ${({ $color }) => $color};
+  flex-shrink: 0;
 `;
 
 const BarCompare = styled.div`
@@ -271,7 +393,7 @@ const BarLabels = styled.div`
 
 const TimeChart = styled.div`
   display: flex;
-  gap: 32px;
+  gap: 12px;
   align-items: flex-end;
 `;
 
@@ -288,9 +410,9 @@ const TimeBar = styled.div`
   height: ${({ $h }) => $h}px;
   border-radius: 4px;
   background: ${({ theme, $h }) => {
-    if ($h >= 56) return theme.colors.nav.fill;
-    if ($h >= 48) return theme.colors.mint.dark;
-    if ($h >= 30) return theme.colors.mint.mid;
+    if ($h >= 50) return theme.colors.nav.fill;
+    if ($h >= 38) return theme.colors.mint.dark;
+    if ($h >= 26) return theme.colors.mint.mid;
     return theme.colors.mint.light;
   }};
 `;
@@ -374,13 +496,28 @@ const TipText = styled.div`
   }
 `;
 
-const TipList = styled.ul`
+const TipBody = styled.p`
   margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
   font-size: ${({ theme }) => theme.fontSizes.sm};
   color: ${({ theme }) => theme.colors.text.gray};
+  line-height: 1.6;
+`;
+
+const EmptyMsg = styled.p`
+  margin: 0;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme }) => theme.colors.text.gray};
+`;
+
+const Skeleton = styled.div`
+  height: 20px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
 `;

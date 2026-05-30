@@ -24,6 +24,7 @@ import {
 
 const TOKEN_KEY = "token";
 const REFRESH_TOKEN_KEY = "refreshToken";
+const KAKAO_USER_KEY = "kakaoUser"; // 카카오 로그인 여부 플래그
 
 /* ===== 토큰 헬퍼 ===== */
 
@@ -44,6 +45,19 @@ export function saveLoginTokens(data) {
   return true;
 }
 
+/** 카카오 로그인 여부 localStorage 플래그 */
+export function setKakaoUserFlag() {
+  localStorage.setItem(KAKAO_USER_KEY, "true");
+}
+
+export function getKakaoUserFlag() {
+  return localStorage.getItem(KAKAO_USER_KEY) === "true";
+}
+
+function clearKakaoUserFlag() {
+  localStorage.removeItem(KAKAO_USER_KEY);
+}
+
 function setTokens({ accessToken, refreshToken }) {
   console.log("[setTokens] saving tokens", {
     accessToken: !!accessToken,
@@ -62,6 +76,7 @@ function setTokens({ accessToken, refreshToken }) {
 function clearTokens() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  clearKakaoUserFlag();
   window.dispatchEvent(new Event("auth-changed"));
 }
 

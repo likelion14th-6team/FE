@@ -1,7 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useSyncExternalStore } from "react";
 
-import { login as loginApi, signup as signupApi } from "../api/auth";
+import {
+  login as loginApi,
+  signup as signupApi,
+  checkUsername as checkUsernameApi,
+} from "../api/auth";
 
 /**
  * 인증 훅 모음.
@@ -119,6 +123,14 @@ export function useSignup() {
     mutationFn: signupApi,
     // 백엔드가 회원가입 시 토큰을 안 주므로 자동 로그인 X.
     // 사용처에서 onSuccess로 login 화면 이동 또는 자동 로그인 처리.
+  });
+}
+
+/* ===== useCheckUsername ===== */
+
+export function useCheckUsername() {
+  return useMutation({
+    mutationFn: checkUsernameApi,
   });
 }
 

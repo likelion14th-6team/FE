@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import MobileLayout from "../components/common/MobileLayout";
 import Button from "../components/common/Button";
@@ -11,6 +11,10 @@ import { startKakaoLogin } from "../hooks/useKakaoAuth";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  // ProtectedRoute가 막아서 보낸 경우 location.state.from에 원래 경로가 들어있음.
+  const from = location.state?.from?.pathname || "/";
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const login = useLogin();
@@ -19,7 +23,7 @@ function Login() {
     e.preventDefault();
     try {
       await login.mutateAsync({ username, password });
-      navigate("/", { replace: true });
+      navigate(from, { replace: true });
     } catch (err) {
       const msg =
         err.response?.data?.message ||

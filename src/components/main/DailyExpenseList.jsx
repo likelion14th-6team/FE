@@ -1,11 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Card from "../common/Card";
-import { CATEGORIES } from "../../utils/constants";
 import { formatCurrency } from "../../utils/formatCurrency";
 import { formatShortDateLabel } from "../../utils/calendarUtils";
 
-function DailyExpenseList({ dateKey, items = [] }) {
+function DailyExpenseList({
+  dateKey,
+  items = [],
+  isLoading,
+  isError,
+  onDelete,
+  isDeleting,
+}) {
   const navigate = useNavigate();
   const label = formatShortDateLabel(dateKey);
 
@@ -18,25 +24,42 @@ function DailyExpenseList({ dateKey, items = [] }) {
             전체 보기 ›
           </ViewAll>
         </HeaderRow>
-        {items.length === 0 ? (
+
+        {isLoading && <StatusText>불러오는 중...</StatusText>}
+        {isError && !isLoading && (
+          <StatusText>내역을 불러오지 못했어요</StatusText>
+        )}
+
+        {!isLoading && !isError && items.length === 0 && (
           <Empty>이 날짜에 기록된 소비가 없어요</Empty>
-        ) : (
+        )}
+
+        {!isLoading && !isError && items.length > 0 && (
           <List>
-            {items.map((item) => {
-              const cat = CATEGORIES[item.categoryKey] ?? CATEGORIES.etc;
-              return (
-                <Row key={item.id}>
-                  <Left>
-                    <Bar $color={cat.color} />
-                    <Meta>
-                      <Name>{item.title}</Name>
-                      <Sub>{cat.label}</Sub>
-                    </Meta>
-                  </Left>
+            {items.map((item) => (
+              <Row key={item.id}>
+                <Left>
+                  <Bar $color={item.categoryColor} />
+                  <Meta>
+                    <Name>{item.title}</Name>
+                    <Sub>{item.categoryName}</Sub>
+                  </Meta>
+                </Left>
+                <Right>
                   <Amount>{formatCurrency(item.amount)}</Amount>
-                </Row>
-              );
-            })}
+                  {onDelete && (
+                    <DeleteBtn
+                      type="button"
+                      aria-label="삭제"
+                      disabled={isDeleting}
+                      onClick={() => onDelete(item.id)}
+                    >
+                      ×
+                    </DeleteBtn>
+                  )}
+                </Right>
+              </Row>
+            ))}
           </List>
         )}
       </Inner>
@@ -75,6 +98,13 @@ const ViewAll = styled.button`
   padding: 0;
 `;
 
+const StatusText = styled.p`
+  margin: 0;
+  text-align: center;
+  color: ${({ theme }) => theme.colors.text.gray};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+`;
+
 const List = styled.ul`
   list-style: none;
   padding: 0;
@@ -96,6 +126,14 @@ const Left = styled.div`
   align-items: center;
   gap: 8px;
   min-width: 0;
+  flex: 1;
+`;
+
+const Right = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 `;
 
 const Bar = styled.div`
@@ -126,7 +164,24 @@ const Sub = styled.span`
 const Amount = styled.span`
   font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: 500;
-  flex-shrink: 0;
+`;
+
+const DeleteBtn = styled.button`
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.06);
+  color: ${({ theme }) => theme.colors.text.secondary};
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `;
 
 const Empty = styled.p`

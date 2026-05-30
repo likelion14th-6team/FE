@@ -1,3 +1,5 @@
+import { toDateKey } from "./dateKey";
+
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
 /** year, month(1-12) 기준 달력 그리드 (6주 × 7일) */
@@ -29,7 +31,7 @@ export function buildMonthGrid(year, month) {
       day: date.getDate(),
       inMonth,
       isSunday: date.getDay() === 0,
-      key: date.toISOString().slice(0, 10),
+      key: toDateKey(date),
     });
   }
   return { weekdays: WEEKDAYS, cells };

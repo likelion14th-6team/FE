@@ -1,90 +1,150 @@
-import { useState } from 'react';
-import styled from 'styled-components';
+import { useEffect, useState } from "react";
+import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 
-import MobileLayout from '../components/common/MobileLayout';
-import Header from '../components/common/Header';
-import BottomNav from '../components/common/BottomNav';
+import MobileLayout from "../components/common/MobileLayout";
+import Header from "../components/common/Header";
+import BottomNav from "../components/common/BottomNav";
 
-import ConfirmDialog from '../components/common/ConfirmDialog';
+import ConfirmDialog from "../components/common/ConfirmDialog";
+import InputDialog from "../components/common/InputDialog";
 
-import MembershipBadge from '../components/mypage/MembershipBadge';
-import InfoRow from '../components/mypage/InfoRow';
-import EditChip from '../components/mypage/EditChip';
-import BudgetCard from '../components/mypage/BudgetCard';
+import MembershipBadge from "../components/mypage/MembershipBadge";
+import InfoRow from "../components/mypage/InfoRow";
+import EditChip from "../components/mypage/EditChip";
+import BudgetCard from "../components/mypage/BudgetCard";
+import PasswordEditModal from "../components/mypage/PasswordEditModal";
 
-// 더미 사용자 — API 연동 전까지 사용.
-// 백엔드 응답 형태가 정해지면 user.provider === 'KAKAO' 같은 키로 분기 예정.
-const USERS = {
-  normal: {
-    type: 'normal',
-    name: '김상우',
-    username: 'dev_Sangwoo',
-    phone: '010-0000-000',
-    email: 'user@example.com',
-    nickname: '멋쟁이사자',
-    gender: '남성',
-    ageGroup: '20대',
-    budget: 500000,
-  },
-  kakao: {
-    type: 'kakao',
-    name: '김상우',
-    username: 'kakao_123456',
-    phone: '010-0000-000',
-    email: 'user@example.com',
-    nickname: '멋쟁이사자',
-    gender: '남성',
-    ageGroup: '20대',
-    budget: 500000,
-  },
-};
+import { useAuthState, useLogout } from "../hooks/useAuth";
+import { useMe, usePatchMe } from "../hooks/useMe";
+import { useBudgets, useUpsertBudget } from "../hooks/useBudgets";
+import { getApiErrorMessage } from "../utils/apiError";
+import {
+  formatAgeGroup,
+  formatGender,
+  getCurrentTargetMonth,
+  getMembershipType,
+  isKakaoUser,
+} from "../utils/userProfile";
+import { parseBudget } from "../utils/formatBudget";
 
 function MyPage() {
-  // TODO(API): 실제 인증 사용자로 교체. 지금은 토글로 두 모드 확인용.
-  const [userType, setUserType] = useState('normal');
-  const user = USERS[userType];
-  const isKakao = user.type === 'kakao';
+  const navigate = useNavigate();
+  const logout = useLogout();
+  const { isAuthenticated } = useAuthState();
+  const { data: me, isLoading, isError, error, refetch } = useMe();
+  const { data: budgetData, isLoading: budgetLoading } = useBudgets();
+  const patchMe = usePatchMe();
+  const upsertBudget = useUpsertBudget();
 
-  // 다이얼로그 오픈 상태
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [nicknameOpen, setNicknameOpen] = useState(false);
+  const [budgetOpen, setBudgetOpen] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
 
-  // 임시 핸들러 — 추후 API 연동/페이지 이동으로 교체
-  const handleEdit = (field) => console.log('[mypage] edit', field);
-  const handleEditBudget = () => console.log('[mypage] edit budget');
-  const handleLogoutConfirm = () => console.log('[mypage] logout confirmed');
-  const handleWithdrawConfirm = () => console.log('[mypage] withdraw confirmed');
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+  const membershipType = getMembershipType(me);
+  const isKakao = isKakaoUser(me);
+  const budgetAmount = budgetData?.targetAmount ?? 0;
+
+  const handleSubmitNickname = async (newNickname) => {
+    const trimmed = newNickname.trim();
+    try {
+      await patchMe.mutateAsync({ nickname: trimmed });
+      alert("별명이 수정되었습니다.");
+    } catch (err) {
+      alert("수정 실패: " + getApiErrorMessage(err, "별명 수정에 실패했습니다."));
+    }
+  };
+
+  const handleSubmitBudget = async (newBudgetStr) => {
+    const newBudget = parseBudget(newBudgetStr);
+    if (!newBudget || newBudget <= 0) return;
+
+    try {
+      await upsertBudget.mutateAsync({
+        targetMonth: getCurrentTargetMonth(),
+        targetAmount: newBudget,
+      });
+      alert("예산이 수정되었습니다.");
+    } catch (err) {
+      alert(
+        "수정 실패: " +
+          getApiErrorMessage(err, "예산 수정에 실패했습니다."),
+      );
+    }
+  };
+
+  const handleSubmitPassword = async (current, next) => {
+    try {
+      await patchMe.mutateAsync({
+        currentPassword: current,
+        newPassword: next,
+      });
+      alert("비밀번호가 변경되었습니다. 다시 로그인해주세요.");
+      logout();
+      navigate("/login", { replace: true });
+    } catch (err) {
+      alert("변경 실패: " + getApiErrorMessage(err, "비밀번호 변경에 실패했습니다."));
+    }
+  };
+
+  const handleLogoutConfirm = () => {
+    logout();
+    navigate("/login");
+  };
+
+  const handleWithdrawConfirm = () => {
+    // TODO(API): DELETE /users/me 등 탈퇴 API 연동
+    logout();
+    navigate("/signup");
+  };
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  if (isLoading) {
+    return (
+      <MobileLayout>
+        <Header title="마이페이지" />
+        <StatusMessage>내 정보를 불러오는 중...</StatusMessage>
+        <BottomNav />
+      </MobileLayout>
+    );
+  }
+
+  if (isError || !me) {
+    return (
+      <MobileLayout>
+        <Header title="마이페이지" />
+        <StatusMessage>
+          {getApiErrorMessage(error, "내 정보를 불러오지 못했습니다.")}
+          <RetryBtn type="button" onClick={() => refetch()}>
+            다시 시도
+          </RetryBtn>
+        </StatusMessage>
+        <BottomNav />
+      </MobileLayout>
+    );
+  }
 
   return (
     <MobileLayout>
       <Header title="마이페이지" />
 
       <Body>
-        {/* TODO: API 연동 시 제거 — 개발용 모드 토글 */}
-        <DevToggle>
-          <DevCaption>🛠 개발용 모드</DevCaption>
-          <DevButtons>
-            <DevBtn
-              $active={userType === 'normal'}
-              onClick={() => setUserType('normal')}
-            >
-              일반
-            </DevBtn>
-            <DevBtn
-              $active={userType === 'kakao'}
-              onClick={() => setUserType('kakao')}
-            >
-              카카오
-            </DevBtn>
-          </DevButtons>
-        </DevToggle>
-
-        {/* 프로필 + 정보 카드 */}
         <ProfileCard>
           <ProfileHead>
-            <Avatar $type={user.type} />
-            <UserName>{user.name}</UserName>
-            <MembershipBadge type={user.type} />
+            <Avatar $type={membershipType} />
+            <UserName>{me.name}</UserName>
+            <MembershipBadge type={membershipType} />
           </ProfileHead>
 
           <Divider />
@@ -92,36 +152,45 @@ function MyPage() {
           <InfoList>
             <InfoRow
               label="아이디"
-              value={user.username}
+              value={me.username}
               action={isKakao ? <EditChip variant="disabled" /> : undefined}
             />
             <InfoRow
               label="비밀번호"
-              value={isKakao ? '소셜 로그인' : undefined}
+              value={isKakao ? "소셜 로그인" : "••••••••"}
               action={
                 isKakao ? (
                   <EditChip variant="disabled" />
                 ) : (
-                  <EditChip variant="edit" onClick={() => handleEdit('password')} />
+                  <EditChip
+                    variant="edit"
+                    onClick={() => setPasswordOpen(true)}
+                  />
                 )
               }
             />
-            <InfoRow label="전화번호" value={user.phone} />
-            <InfoRow label="이메일" value={user.email} />
+            <InfoRow label="전화번호" value={me.phone || "-"} />
+            <InfoRow label="이메일" value={me.email} />
             <InfoRow
               label="별명"
-              value={user.nickname}
-              action={<EditChip variant="edit" onClick={() => handleEdit('nickname')} />}
+              value={me.nickname}
+              action={
+                <EditChip
+                  variant="edit"
+                  onClick={() => setNicknameOpen(true)}
+                />
+              }
             />
-            <InfoRow label="성별" value={user.gender} />
-            <InfoRow label="연령대" value={user.ageGroup} />
+            <InfoRow label="성별" value={formatGender(me.gender)} />
+            <InfoRow label="연령대" value={formatAgeGroup(me.ageGroup)} />
           </InfoList>
         </ProfileCard>
 
-        {/* 예산 */}
-        <BudgetCard amount={user.budget} onEdit={handleEditBudget} />
+        <BudgetCard
+          amount={budgetLoading ? 0 : budgetAmount}
+          onEdit={() => setBudgetOpen(true)}
+        />
 
-        {/* 로그아웃 + 회원 탈퇴 */}
         <LogoutCard type="button" onClick={() => setLogoutOpen(true)}>
           로그아웃
         </LogoutCard>
@@ -132,11 +201,58 @@ function MyPage() {
 
       <BottomNav />
 
+      <InputDialog
+        open={nicknameOpen}
+        onClose={() => setNicknameOpen(false)}
+        title="별명 수정"
+        label="새 별명"
+        placeholder="재영"
+        initialValue={me.nickname}
+        onSubmit={handleSubmitNickname}
+        validate={(v) => {
+          const len = v.trim().length;
+          if (len < 2) return "별명은 2자 이상 입력해주세요";
+          if (len > 20) return "20자 이하로 입력해주세요";
+          return null;
+        }}
+        confirmLabel="저장"
+      />
+
+      <InputDialog
+        open={budgetOpen}
+        onClose={() => setBudgetOpen(false)}
+        title="이번 달 예산 수정"
+        label="목표 예산"
+        placeholder="500,000"
+        initialValue={budgetAmount > 0 ? String(budgetAmount) : ""}
+        inputType="text"
+        inputMode="numeric"
+        suffix="원"
+        formatDisplay={(v) => {
+          const num = parseBudget(v);
+          return num > 0 ? num.toLocaleString() : "";
+        }}
+        onSubmit={handleSubmitBudget}
+        validate={(v) => {
+          const n = parseBudget(v);
+          if (!n || n <= 0) return "0보다 큰 금액을 입력해주세요";
+          if (n > 100000000) return "1억 이하로 입력해주세요";
+          return null;
+        }}
+        confirmLabel="저장"
+      />
+
+      <PasswordEditModal
+        open={passwordOpen}
+        onClose={() => setPasswordOpen(false)}
+        onSubmit={handleSubmitPassword}
+      />
+
       <ConfirmDialog
         open={logoutOpen}
         onClose={() => setLogoutOpen(false)}
         title="로그아웃 하시겠어요?"
-        description={'다시 로그인하면 돌아올 수 있어요.'}
+        description={"다시 로그인하면 돌아올 수 있어요."}
         confirmLabel="로그아웃"
         confirmVariant="primary"
         onConfirm={handleLogoutConfirm}
@@ -146,7 +262,9 @@ function MyPage() {
         open={withdrawOpen}
         onClose={() => setWithdrawOpen(false)}
         title="정말 탈퇴하시겠어요?"
-        description={'탈퇴하면 그동안의 소비 기록과\n만족도 데이터가 모두 사라져요.'}
+        description={
+          "탈퇴하면 그동안의 소비 기록과\n만족도 데이터가 모두 사라져요."
+        }
         confirmLabel="탈퇴하기"
         confirmVariant="danger"
         onConfirm={handleWithdrawConfirm}
@@ -164,44 +282,27 @@ const Body = styled.div`
   padding-bottom: 16px;
 `;
 
-/* ===== 개발용 토글 ===== */
-
-const DevToggle = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px dashed rgba(0, 0, 0, 0.15);
-  border-radius: 10px;
-`;
-
-const DevCaption = styled.span`
-  font-size: ${({ theme }) => theme.fontSizes.xs};
+const StatusMessage = styled.p`
+  margin: 48px 16px;
+  text-align: center;
+  font-size: ${({ theme }) => theme.fontSizes.base};
   color: ${({ theme }) => theme.colors.text.secondary};
+  line-height: 1.5;
 `;
 
-const DevButtons = styled.div`
-  display: flex;
-  gap: 4px;
-`;
-
-const DevBtn = styled.button`
+const RetryBtn = styled.button`
+  display: block;
+  margin: 16px auto 0;
+  padding: 10px 20px;
   border: none;
   border-radius: ${({ theme }) => theme.radius.pill};
-  padding: 4px 12px;
+  background: ${({ theme }) => theme.colors.mint.dark};
+  color: ${({ theme }) => theme.colors.white};
   font-family: inherit;
-  font-size: ${({ theme }) => theme.fontSizes.xs};
+  font-size: ${({ theme }) => theme.fontSizes.sm};
   font-weight: 700;
   cursor: pointer;
-  background: ${({ theme, $active }) =>
-    $active ? theme.colors.text.brand : theme.colors.white};
-  color: ${({ theme, $active }) =>
-    $active ? theme.colors.white : theme.colors.text.secondary};
 `;
-
-/* ===== 프로필 ===== */
 
 const ProfileCard = styled.section`
   background: ${({ theme }) => theme.colors.white};
@@ -225,7 +326,7 @@ const Avatar = styled.div`
   height: 80px;
   border-radius: ${({ theme }) => theme.radius.circle};
   background: ${({ theme, $type }) =>
-    $type === 'kakao' ? theme.colors.accent.yellow : theme.colors.mint.dark};
+    $type === "kakao" ? theme.colors.accent.yellow : theme.colors.mint.dark};
 `;
 
 const UserName = styled.h2`
@@ -247,8 +348,6 @@ const InfoList = styled.div`
   gap: 14px;
   padding: 2px 4px 4px;
 `;
-
-/* ===== 로그아웃 / 탈퇴 ===== */
 
 const LogoutCard = styled.button`
   width: 100%;

@@ -1,11 +1,8 @@
-import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
-function FabButton() {
-  const navigate = useNavigate();
-
+function FabButton({ onClick, 'aria-label': ariaLabel = '소비 등록' }) {
   return (
-    <Button type="button" onClick={() => navigate('/register')} aria-label="소비 등록">
+    <Button type="button" onClick={onClick} aria-label={ariaLabel}>
       +
     </Button>
   );

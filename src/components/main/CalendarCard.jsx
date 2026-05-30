@@ -9,6 +9,8 @@ function CalendarCard({
   onSelectDate,
   onPrevMonth,
   onNextMonth,
+  /** { [YYYY-MM-DD]: { totalExpense, totalIncome } } */
+  dayTotals = {},
 }) {
   const { weekdays, cells } = buildMonthGrid(year, month);
 
@@ -36,6 +38,8 @@ function CalendarCard({
             <WeekRow key={row}>
               {cells.slice(row * 7, row * 7 + 7).map((cell) => {
                 const selected = selectedKey === cell.key;
+                const totals = dayTotals[cell.key];
+                const hasExpense = (totals?.totalExpense ?? 0) > 0;
                 return (
                   <DayCell key={cell.key}>
                     <DayBtn
@@ -47,6 +51,7 @@ function CalendarCard({
                       aria-pressed={selected}
                     >
                       {cell.day}
+                      {hasExpense && <ExpenseDot $selected={selected} />}
                     </DayBtn>
                   </DayCell>
                 );
@@ -116,6 +121,7 @@ const DayCell = styled.div`
 `;
 
 const DayBtn = styled.button`
+  position: relative;
   width: 30px;
   height: 30px;
   border: none;
@@ -138,4 +144,16 @@ const DayBtn = styled.button`
     background: ${({ theme, $selected }) =>
       $selected ? theme.colors.nav.fill : theme.colors.mint.light};
   }
+`;
+
+const ExpenseDot = styled.span`
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: ${({ theme, $selected }) =>
+    $selected ? theme.colors.text.ink : theme.colors.nav.fill};
 `;

@@ -80,7 +80,7 @@ function Signup() {
       return;
     }
 
-    // 1) 회원가입 + 자동 로그인 (실패 시 여기서 중단)
+    // 1) 회원가입 (실패 시 여기서 중단)
     try {
       await signup.mutateAsync({
         username: form.username,
@@ -92,10 +92,6 @@ function Signup() {
         gender: GENDER_MAP[form.gender],
         ageGroup: AGE_MAP[form.ageGroup],
       });
-      await login.mutateAsync({
-        username: form.username,
-        password: form.password,
-      });
     } catch (err) {
       const msg =
         err.response?.data?.message ||
@@ -105,7 +101,23 @@ function Signup() {
       return;
     }
 
-    // 2) 예산 생성 — best-effort. 실패해도 가입은 완료된 것으로 처리.
+    // 2) 자동 로그인 (실패해도 가입은 완료됨)
+    try {
+      await login.mutateAsync({
+        username: form.username,
+        password: form.password,
+      });
+    } catch (err) {
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "로그인에 실패했습니다. 다시 시도해주세요.";
+      alert("가입은 완료됐지만 로그인에 실패했습니다: " + msg);
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    // 3) 예산 생성 — best-effort. 실패해도 가입은 완료된 것으로 처리.
     const budgetAmount = Number(String(form.budget).replace(/[^0-9]/g, ""));
     if (budgetAmount > 0) {
       const now = new Date();

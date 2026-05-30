@@ -14,11 +14,14 @@ import InfoRow from "../components/mypage/InfoRow";
 import EditChip from "../components/mypage/EditChip";
 import BudgetCard from "../components/mypage/BudgetCard";
 import PasswordEditModal from "../components/mypage/PasswordEditModal";
+import PhoneEditDialog from "../components/mypage/PhoneEditDialog";
+import ProfileSelectDialog from "../components/mypage/ProfileSelectDialog";
 
 import { useAuthState, useLogout } from "../hooks/useAuth";
 import { useMe, usePatchMe } from "../hooks/useMe";
 import { useBudgets, useUpsertBudget } from "../hooks/useBudgets";
 import { getApiErrorMessage } from "../utils/apiError";
+import { isMissingProfileField } from "../constants/profileEnums";
 import {
   formatAgeGroup,
   formatGender,
@@ -40,6 +43,9 @@ function MyPage() {
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [nicknameOpen, setNicknameOpen] = useState(false);
+  const [phoneOpen, setPhoneOpen] = useState(false);
+  const [genderOpen, setGenderOpen] = useState(false);
+  const [ageGroupOpen, setAgeGroupOpen] = useState(false);
   const [budgetOpen, setBudgetOpen] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
 
@@ -52,6 +58,39 @@ function MyPage() {
   const membershipType = getMembershipType(me);
   const isKakao = isKakaoUser(me);
   const budgetAmount = budgetData?.targetAmount ?? 0;
+
+  const handleSubmitPhone = async (phone) => {
+    try {
+      await patchMe.mutateAsync({ phone });
+      alert("전화번호가 저장되었습니다.");
+    } catch (err) {
+      alert(
+        "저장 실패: " + getApiErrorMessage(err, "전화번호 저장에 실패했습니다."),
+      );
+    }
+  };
+
+  const handleSubmitGender = async ({ gender }) => {
+    try {
+      await patchMe.mutateAsync({ gender });
+      alert("성별이 저장되었습니다.");
+    } catch (err) {
+      alert(
+        "저장 실패: " + getApiErrorMessage(err, "성별 저장에 실패했습니다."),
+      );
+    }
+  };
+
+  const handleSubmitAgeGroup = async ({ ageGroup }) => {
+    try {
+      await patchMe.mutateAsync({ ageGroup });
+      alert("연령대가 저장되었습니다.");
+    } catch (err) {
+      alert(
+        "저장 실패: " + getApiErrorMessage(err, "연령대 저장에 실패했습니다."),
+      );
+    }
+  };
 
   const handleSubmitNickname = async (newNickname) => {
     const trimmed = newNickname.trim();
@@ -169,7 +208,17 @@ function MyPage() {
                 )
               }
             />
-            <InfoRow label="전화번호" value={me.phone || "-"} />
+            <InfoRow
+              label="전화번호"
+              value={me.phone || "-"}
+              action={
+                <EditChip
+                  variant="edit"
+                  label={isMissingProfileField(me.phone) ? "추가" : "수정"}
+                  onClick={() => setPhoneOpen(true)}
+                />
+              }
+            />
             <InfoRow label="이메일" value={me.email} />
             <InfoRow
               label="별명"
@@ -181,8 +230,28 @@ function MyPage() {
                 />
               }
             />
-            <InfoRow label="성별" value={formatGender(me.gender)} />
-            <InfoRow label="연령대" value={formatAgeGroup(me.ageGroup)} />
+            <InfoRow
+              label="성별"
+              value={formatGender(me.gender)}
+              action={
+                <EditChip
+                  variant="edit"
+                  label={isMissingProfileField(me.gender) ? "추가" : "수정"}
+                  onClick={() => setGenderOpen(true)}
+                />
+              }
+            />
+            <InfoRow
+              label="연령대"
+              value={formatAgeGroup(me.ageGroup)}
+              action={
+                <EditChip
+                  variant="edit"
+                  label={isMissingProfileField(me.ageGroup) ? "추가" : "수정"}
+                  onClick={() => setAgeGroupOpen(true)}
+                />
+              }
+            />
           </InfoList>
         </ProfileCard>
 
@@ -200,6 +269,35 @@ function MyPage() {
       </Body>
 
       <BottomNav />
+
+      <PhoneEditDialog
+        open={phoneOpen}
+        onClose={() => setPhoneOpen(false)}
+        initialValue={me.phone || ""}
+        title={isMissingProfileField(me.phone) ? "전화번호 등록" : "전화번호 수정"}
+        description={
+          isKakao && isMissingProfileField(me.phone)
+            ? "카카오 로그인 시 전화번호는 제공되지 않아요. 원하시면 여기서 등록해 주세요."
+            : undefined
+        }
+        onSubmit={handleSubmitPhone}
+      />
+
+      <ProfileSelectDialog
+        open={genderOpen}
+        onClose={() => setGenderOpen(false)}
+        kind="gender"
+        initialGenderApi={me.gender}
+        onSubmit={handleSubmitGender}
+      />
+
+      <ProfileSelectDialog
+        open={ageGroupOpen}
+        onClose={() => setAgeGroupOpen(false)}
+        kind="ageGroup"
+        initialAgeGroupApi={me.ageGroup}
+        onSubmit={handleSubmitAgeGroup}
+      />
 
       <InputDialog
         open={nicknameOpen}

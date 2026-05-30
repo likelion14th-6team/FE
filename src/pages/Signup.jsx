@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import MobileLayout from "../components/common/MobileLayout";
 import Button from "../components/common/Button";
@@ -9,34 +9,14 @@ import PhoneNumberInput from "../components/auth/PhoneNumberInput";
 import Header from "../components/common/Header";
 import { useSignup, useLogin, useCheckUsername } from "../hooks/useAuth";
 import { useCreateBudget } from "../hooks/useBudgets";
-import { KAKAO_SIGNUP_STORAGE_KEY } from "./KakaoCallback";
-
-const AGE_OPTIONS = ["10대", "20대", "30대", "40대", "50대+"];
-
-// 폼 값 → 백엔드 enum 매핑
-const GENDER_MAP = { male: "MALE", female: "FEMALE" };
-const AGE_MAP = {
-  "10대": "10s",
-  "20대": "20s",
-  "30대": "30s",
-  "40대": "40s",
-  "50대+": "50s",
-};
+import {
+  AGE_MAP,
+  AGE_OPTIONS,
+  GENDER_MAP,
+} from "../constants/profileEnums";
 
 function Signup() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const kakaoDraft = (() => {
-    try {
-      const raw = sessionStorage.getItem(KAKAO_SIGNUP_STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch (err) {
-      console.warn("[signup] invalid kakao draft", err);
-      return null;
-    }
-  })();
-  const kakaoProfile = location.state?.kakaoProfile || kakaoDraft;
-  const fromKakao = location.state?.fromKakao === true || !!kakaoDraft;
   const signup = useSignup();
   const login = useLogin();
   const checkUsername = useCheckUsername();
@@ -45,13 +25,13 @@ function Signup() {
     signup.isPending || login.isPending || createBudget.isPending;
 
   const [form, setForm] = useState({
-    name: kakaoProfile?.name || "",
+    name: "",
     username: "",
     password: "",
     passwordConfirm: "",
     phone: "",
-    email: kakaoProfile?.email || "",
-    nickname: kakaoProfile?.nickname || "",
+    email: "",
+    nickname: "",
     gender: "male",
     ageGroup: "20대",
     budget: "",
@@ -63,13 +43,6 @@ function Signup() {
     status: "idle",
     message: "",
   });
-
-  useEffect(() => {
-    if (fromKakao) {
-      // 카카오 신규 가입 시 추가 정보 입력 안내 (백엔드 kakao/signup 연동 전)
-      console.info("[signup] 카카오 신규 가입 추가 정보 입력", kakaoProfile);
-    }
-  }, [fromKakao, kakaoProfile]);
 
   useEffect(() => {
     setUsernameCheck({ status: "idle", message: "" });
@@ -211,7 +184,7 @@ function Signup() {
         <Hero>
           <Mochi expression="excited" size="xl" />
           <HeroText>
-            {fromKakao ? "카카오로 가입 중이에요!" : "함께 시작해요!"}
+            함께 시작해요!
           </HeroText>
         </Hero>
 

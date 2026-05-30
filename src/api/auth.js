@@ -5,7 +5,7 @@ import { KAKAO_CODE_LOGIN_PATH, KAKAO_SIGNUP_PATH } from "../config/oauth";
  * 인증 관련 API.
  *
  * 구현됨: POST /auth/signup, POST /auth/login, POST /auth/refresh
- * 예정(카카오): GET /auth/kakao/login, POST /auth/kakao/login, POST /auth/kakao/signup
+ * 카카오: JS SDK authorize → POST /auth/kakao/login, POST /auth/kakao/signup
  */
 
 export function signup(payload) {
@@ -30,7 +30,10 @@ export function kakaoLoginWithCode({ code, redirectUri }) {
     .then((r) => r.data);
 }
 
-/** 카카오 신규 가입 — 추가 프로필 제출 (백엔드 스펙 확정 후 필드 조정) */
+/**
+ * 카카오 신규 가입.
+ * phone / gender / ageGroup 은 null (카카오 미제공 → 마이페이지에서 PATCH).
+ */
 export function kakaoSignup(payload) {
   return api.post(KAKAO_SIGNUP_PATH, payload).then((r) => r.data);
 }

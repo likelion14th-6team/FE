@@ -9,6 +9,7 @@ import PhoneNumberInput from "../components/auth/PhoneNumberInput";
 import Header from "../components/common/Header";
 import { useSignup, useLogin } from "../hooks/useAuth";
 import { useCreateBudget } from "../hooks/useBudgets";
+import { KAKAO_SIGNUP_STORAGE_KEY } from "./KakaoCallback";
 
 const AGE_OPTIONS = ["10대", "20대", "30대", "40대", "50대+"];
 
@@ -25,8 +26,17 @@ const AGE_MAP = {
 function Signup() {
   const navigate = useNavigate();
   const location = useLocation();
-  const fromKakao = location.state?.fromKakao === true;
-  const kakaoProfile = location.state?.kakaoProfile;
+  const kakaoDraft = (() => {
+    try {
+      const raw = sessionStorage.getItem(KAKAO_SIGNUP_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (err) {
+      console.warn("[signup] invalid kakao draft", err);
+      return null;
+    }
+  })();
+  const kakaoProfile = location.state?.kakaoProfile || kakaoDraft;
+  const fromKakao = location.state?.fromKakao === true || !!kakaoDraft;
   const signup = useSignup();
   const login = useLogin();
   const createBudget = useCreateBudget();

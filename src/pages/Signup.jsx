@@ -173,7 +173,7 @@ function Signup() {
       const available =
         typeof data === "boolean"
           ? data
-          : data?.available ?? data?.isAvailable ?? data?.usable ?? null;
+          : (data?.available ?? data?.isAvailable ?? data?.usable ?? null);
 
       if (available === true) {
         setUsernameCheck({

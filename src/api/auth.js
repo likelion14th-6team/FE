@@ -1,5 +1,5 @@
-import api from './axios';
-import { KAKAO_CODE_LOGIN_PATH, KAKAO_SIGNUP_PATH } from '../config/oauth';
+import api from "./axios";
+import { KAKAO_CODE_LOGIN_PATH, KAKAO_SIGNUP_PATH } from "../config/oauth";
 
 /**
  * 인증 관련 API.
@@ -9,17 +9,17 @@ import { KAKAO_CODE_LOGIN_PATH, KAKAO_SIGNUP_PATH } from '../config/oauth';
  */
 
 export function signup(payload) {
-  return api.post('/auth/signup', payload).then((r) => r.data);
+  return api.post("/auth/signup", payload).then((r) => r.data);
 }
 
 export function login(payload) {
-  return api.post('/auth/login', payload).then((r) => r.data);
+  return api.post("/auth/login", payload).then((r) => r.data);
 }
 
 /** 아이디 중복 확인 */
 export function checkUsername(username) {
   return api
-    .get('/auth/check-username', { params: { username } })
+    .get("/auth/check-username", { params: { username } })
     .then((r) => ({ data: r.data, raw: r.raw }));
 }
 

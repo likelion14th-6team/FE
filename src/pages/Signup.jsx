@@ -170,10 +170,7 @@ function Signup() {
     try {
       const result = await checkUsername.mutateAsync(value);
       const { data, raw } = result || {};
-      const available =
-        typeof data === "boolean"
-          ? data
-          : (data?.available ?? data?.isAvailable ?? data?.usable ?? null);
+      const available = typeof data === "boolean" ? data : null;
 
       if (available === true) {
         setUsernameCheck({

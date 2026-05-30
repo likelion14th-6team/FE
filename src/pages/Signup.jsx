@@ -7,7 +7,7 @@ import Mochi from "../components/common/Mochi";
 import AuthField from "../components/auth/AuthField";
 import PhoneNumberInput from "../components/auth/PhoneNumberInput";
 import Header from "../components/common/Header";
-import { useSignup, useLogin } from "../hooks/useAuth";
+import { useSignup, useLogin, useCheckUsername } from "../hooks/useAuth";
 import { useCreateBudget } from "../hooks/useBudgets";
 import { KAKAO_SIGNUP_STORAGE_KEY } from "./KakaoCallback";
 
@@ -39,6 +39,7 @@ function Signup() {
   const fromKakao = location.state?.fromKakao === true || !!kakaoDraft;
   const signup = useSignup();
   const login = useLogin();
+  const checkUsername = useCheckUsername();
   const createBudget = useCreateBudget();
   const isPending =
     signup.isPending || login.isPending || createBudget.isPending;
@@ -58,6 +59,10 @@ function Signup() {
     privacy: false,
     marketing: false,
   });
+  const [usernameCheck, setUsernameCheck] = useState({
+    status: "idle",
+    message: "",
+  });
 
   useEffect(() => {
     if (fromKakao) {
@@ -65,6 +70,10 @@ function Signup() {
       console.info("[signup] 카카오 신규 가입 추가 정보 입력", kakaoProfile);
     }
   }, [fromKakao, kakaoProfile]);
+
+  useEffect(() => {
+    setUsernameCheck({ status: "idle", message: "" });
+  }, [form.username]);
 
   const set = (key) => (e) => {
     let value =
@@ -150,6 +159,49 @@ function Signup() {
     navigate("/", { replace: true });
   };
 
+  const handleCheckUsername = async () => {
+    const value = form.username.trim();
+    if (value.length < 4 || value.length > 20) {
+      alert("아이디는 4~20자로 입력해주세요.");
+      return;
+    }
+
+    setUsernameCheck({ status: "checking", message: "확인 중..." });
+    try {
+      const result = await checkUsername.mutateAsync(value);
+      const { data, raw } = result || {};
+      const available =
+        typeof data === "boolean"
+          ? data
+          : data?.available ?? data?.isAvailable ?? data?.usable ?? null;
+
+      if (available === true) {
+        setUsernameCheck({
+          status: "ok",
+          message: "사용 가능한 아이디입니다.",
+        });
+        return;
+      }
+
+      if (available === false) {
+        setUsernameCheck({
+          status: "taken",
+          message: "이미 사용 중인 아이디입니다.",
+        });
+        return;
+      }
+
+      const fallbackMsg = raw?.message || "중복 확인이 완료되었습니다.";
+      setUsernameCheck({ status: "ok", message: fallbackMsg });
+    } catch (err) {
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "중복 확인에 실패했습니다.";
+      setUsernameCheck({ status: "error", message: msg });
+    }
+  };
+
   return (
     <MobileLayout $hasBottomNav={false}>
       <Header
@@ -183,8 +235,21 @@ function Signup() {
             onChange={set("username")}
             placeholder="영문/숫자 6~20자"
             required
-            action={<DupBtn type="button">중복확인</DupBtn>}
+            action={
+              <DupBtn
+                type="button"
+                onClick={handleCheckUsername}
+                disabled={checkUsername.isPending || !form.username.trim()}
+              >
+                {checkUsername.isPending ? "확인 중..." : "중복확인"}
+              </DupBtn>
+            }
           />
+          {usernameCheck.status !== "idle" && (
+            <DupHint $status={usernameCheck.status}>
+              {usernameCheck.message}
+            </DupHint>
+          )}
 
           <AuthField
             label="비밀번호 *"
@@ -355,6 +420,21 @@ const DupBtn = styled.button`
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+const DupHint = styled.p`
+  margin: -8px 0 0;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  color: ${({ theme, $status }) => {
+    if ($status === "ok") return theme.colors.text.brand;
+    if ($status === "taken" || $status === "error") return theme.colors.danger;
+    return theme.colors.text.secondary;
+  }};
 `;
 
 const PhoneField = styled.div`

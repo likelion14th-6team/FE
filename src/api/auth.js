@@ -16,6 +16,13 @@ export function login(payload) {
   return api.post('/auth/login', payload).then((r) => r.data);
 }
 
+/** 아이디 중복 확인 */
+export function checkUsername(username) {
+  return api
+    .get('/auth/check-username', { params: { username } })
+    .then((r) => ({ data: r.data, raw: r.raw }));
+}
+
 /** 카카오 인가 코드로 로그인 (LoginResponseDto) */
 export function kakaoLoginWithCode({ code, redirectUri }) {
   return api

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import MobileLayout from "../components/common/MobileLayout";
 import Header from "../components/common/Header";
@@ -33,6 +33,8 @@ import { parseBudget } from "../utils/formatBudget";
 
 function MyPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromKakaoLogin = location.state?.fromKakao === true;
   const logout = useLogout();
   const { isAuthenticated } = useAuthState();
   const { data: me, isLoading, isError, error, refetch } = useMe();
@@ -98,7 +100,9 @@ function MyPage() {
       await patchMe.mutateAsync({ nickname: trimmed });
       alert("별명이 수정되었습니다.");
     } catch (err) {
-      alert("수정 실패: " + getApiErrorMessage(err, "별명 수정에 실패했습니다."));
+      alert(
+        "수정 실패: " + getApiErrorMessage(err, "별명 수정에 실패했습니다."),
+      );
     }
   };
 
@@ -114,8 +118,7 @@ function MyPage() {
       alert("예산이 수정되었습니다.");
     } catch (err) {
       alert(
-        "수정 실패: " +
-          getApiErrorMessage(err, "예산 수정에 실패했습니다."),
+        "수정 실패: " + getApiErrorMessage(err, "예산 수정에 실패했습니다."),
       );
     }
   };
@@ -130,7 +133,10 @@ function MyPage() {
       logout();
       navigate("/login", { replace: true });
     } catch (err) {
-      alert("변경 실패: " + getApiErrorMessage(err, "비밀번호 변경에 실패했습니다."));
+      alert(
+        "변경 실패: " +
+          getApiErrorMessage(err, "비밀번호 변경에 실패했습니다."),
+      );
     }
   };
 
@@ -179,6 +185,11 @@ function MyPage() {
       <Header title="마이페이지" />
 
       <Body>
+        {fromKakaoLogin && (
+          <WelcomeBanner>
+            🎉 카카오 로그인 완료! 아래에서 정보와 예산을 설정해주세요.
+          </WelcomeBanner>
+        )}
         <ProfileCard>
           <ProfileHead>
             <Avatar $type={membershipType} />
@@ -194,20 +205,18 @@ function MyPage() {
               value={me.username}
               action={isKakao ? <EditChip variant="disabled" /> : undefined}
             />
-            <InfoRow
-              label="비밀번호"
-              value={isKakao ? "소셜 로그인" : "••••••••"}
-              action={
-                isKakao ? (
-                  <EditChip variant="disabled" />
-                ) : (
+            {!isKakao && (
+              <InfoRow
+                label="비밀번호"
+                value="••••••••"
+                action={
                   <EditChip
                     variant="edit"
                     onClick={() => setPasswordOpen(true)}
                   />
-                )
-              }
-            />
+                }
+              />
+            )}
             <InfoRow
               label="전화번호"
               value={me.phone || "-"}
@@ -340,11 +349,13 @@ function MyPage() {
         confirmLabel="저장"
       />
 
-      <PasswordEditModal
-        open={passwordOpen}
-        onClose={() => setPasswordOpen(false)}
-        onSubmit={handleSubmitPassword}
-      />
+      {!isKakao && (
+        <PasswordEditModal
+          open={passwordOpen}
+          onClose={() => setPasswordOpen(false)}
+          onSubmit={handleSubmitPassword}
+        />
+      )}
 
       <ConfirmDialog
         open={logoutOpen}
@@ -456,13 +467,23 @@ const LogoutCard = styled.button`
   box-shadow: ${({ theme }) => theme.shadow.cardSoft};
   font-family: inherit;
   font-size: ${({ theme }) => theme.fontSizes.base};
-  font-weight: 700;
+  font-weight: 500;
   color: ${({ theme }) => theme.colors.text.ink};
   cursor: pointer;
 
   &:hover {
     box-shadow: ${({ theme }) => theme.shadow.cardHover};
   }
+`;
+
+const WelcomeBanner = styled.div`
+  padding: 14px 18px;
+  border-radius: ${({ theme }) => theme.radius.card};
+  background: ${({ theme }) => theme.colors.accent.kakao};
+  color: #0a0a0a;
+  font-size: ${({ theme }) => theme.fontSizes.sm};
+  font-weight: 500;
+  line-height: 1.5;
 `;
 
 const WithdrawText = styled.button`

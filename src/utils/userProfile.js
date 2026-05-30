@@ -13,9 +13,14 @@ const AGE_GROUP_LABEL = {
   "60s+": "60대 이상",
 };
 
-/** GET /users/me — authProvider 기준 카카오 회원 여부 */
+/** GET /users/me — authProvider 기준 카카오 회원 여부.
+ *  API가 authProvider 필드를 안 줄 경우 localStorage 플래그(setKakaoUserFlag)로 보완. */
 export function isKakaoUser(user) {
-  return user?.authProvider === "KAKAO";
+  if (user?.authProvider === "KAKAO") return true;
+  // 백엔드가 authProvider를 다른 이름으로 줄 수 있어 추가 체크
+  if (user?.provider === "KAKAO" || user?.loginType === "KAKAO" || user?.socialType === "KAKAO") return true;
+  // 위 필드가 없으면 카카오 로그인 시 저장한 localStorage 플래그 사용
+  return localStorage.getItem("kakaoUser") === "true";
 }
 
 /** MembershipBadge / Avatar용 type */

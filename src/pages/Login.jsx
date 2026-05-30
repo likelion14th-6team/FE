@@ -151,7 +151,7 @@ const KakaoBtn = styled.button`
   color: #0a0a0a;
   font-family: inherit;
   font-size: ${({ theme }) => theme.fontSizes.xl};
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
 
   &:hover {
@@ -172,7 +172,7 @@ const LinkBtn = styled.button`
   padding: 0;
   font-family: inherit;
   font-size: inherit;
-  font-weight: 700;
+  font-weight: 500;
   color: ${({ theme }) => theme.colors.text.ink};
   text-decoration: underline;
   cursor: pointer;
